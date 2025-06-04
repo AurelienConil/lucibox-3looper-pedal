@@ -74,7 +74,7 @@ class WebManager {
     });
 
     // Démarrer le serveur
-    this.server.listen(port, () => {
+    this.server.listen(port, '0.0.0.0', () => {
       console.log(`Web server started on port ${port}`);
       console.log(`Socket.IO server ready`);
       
