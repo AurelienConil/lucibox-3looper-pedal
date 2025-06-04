@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Socket.IO PoC</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+</head>
+<body>
+    <h1>Socket.IO Proof of Concept</h1>
+    
+    <!-- 3 Sliders -->
+    <div>
+        <label>Slider 1: <span id="slider1-value">50</span></label><br>
+        <input type="range" id="slider1" min="0" max="100" value="50">
+    </div>
+    <br>
+    
+    <div>
+        <label>Slider 2: <span id="slider2-value">30</span></label><br>
+        <input type="range" id="slider2" min="0" max="100" value="30">
+    </div>
+    <br>
+    
+    <div>
+        <label>Slider 3: <span id="slider3-value">70</span></label><br>
+        <input type="range" id="slider3" min="0" max="100" value="70">
+    </div>
+    <br><br>
+    
+    <!-- 3 Boutons -->
+    <button id="btn1">Bouton 1</button>
+    <button id="btn2">Bouton 2</button>
+    <button id="btn3">Bouton 3</button>
+    <br><br>
+    
+    <!-- Champ de texte pour les messages reçus -->
+    <div>
+        <label>Messages reçus:</label><br>
+        <textarea id="messages" rows="10" cols="50" readonly></textarea>
+    </div>
+    <br>
+    
+    <!-- Status de connexion -->
+    <div>Status: <span id="status">Déconnecté</span></div>
+
+    <script>
+        // Connexion Socket.IO (change l'URL selon ton serveur)
+        const socket = io('http://localhost:3000');
+        
+        // Éléments DOM
+        const slider1 = document.getElementById('slider1');
+        const slider2 = document.getElementById('slider2');
+        const slider3 = document.getElementById('slider3');
+        const slider1Value = document.getElementById('slider1-value');
+        const slider2Value = document.getElementById('slider2-value');
+        const slider3Value = document.getElementById('slider3-value');
+        const btn1 = document.getElementById('btn1');
+        const btn2 = document.getElementById('btn2');
+        const btn3 = document.getElementById('btn3');
+        const messagesArea = document.getElementById('messages');
+        const statusSpan = document.getElementById('status');
+        
+        // Fonction pour ajouter un message dans le textarea
+        function addMessage(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            messagesArea.value += `[${timestamp}] ${message}\n`;
+            messagesArea.scrollTop = messagesArea.scrollHeight;
+        }
+        
+        // Gestion de la connexion
+        socket.on('connect', () => {
+            statusSpan.textContent = 'Connecté';
+            statusSpan.style.color = 'green';
+            addMessage('Connecté au serveur');
+        });
+        
+        socket.on('disconnect', () => {
+            statusSpan.textContent = 'Déconnecté';
+            statusSpan.style.color = 'red';
+            addMessage('Déconnecté du serveur');
+        });
+        
+        // Gestion des sliders
+        slider1.addEventListener('input', (e) => {
+            const value = e.target.value;
+            slider1Value.textContent = value;
+            socket.emit('slider_change', { slider: 1, value: parseInt(value) });
+            console.log('Slider 1 changé:', value);
+        });
+        
+        slider2.addEventListener('input', (e) => {
+            const value = e.target.value;
+            slider2Value.textContent = value;
+            socket.emit('slider_change', { slider: 2, value: parseInt(value) });
+            console.log('Slider 2 changé:', value);
+        });
+        
+        slider3.addEventListener('input', (e) => {
+            const value = e.target.value;
+            slider3Value.textContent = value;
+            socket.emit('slider_change', { slider: 3, value: parseInt(value), address: "/lucibox/volume"});
+            console.log('Slider 3 changé:', value);
+        });
+        
+        // Gestion des boutons
+        btn1.addEventListener('click', () => {
+            socket.emit('button_click', { button: 1 });
+            console.log('Bouton 1 cliqué');
+        });
+        
+        btn2.addEventListener('click', () => {
+            socket.emit('button_click', { button: 2 });
+            console.log('Bouton 2 cliqué');
+        });
+        
+        btn3.addEventListener('click', () => {
+            socket.emit('button_click', { button: 3 });
+            console.log('Bouton 3 cliqué');
+        });
+        
+        // Réception de messages du serveur
+        socket.on('server_message', (data) => {
+            addMessage(`Serveur: ${data.message}`);
+        });
+        
+        // Réception d'autres types de messages
+        socket.on('notification', (data) => {
+            addMessage(`Notification: ${data.text}`);
+        });
+        
+        // Gestion d'erreurs
+        socket.on('error', (error) => {
+            addMessage(`Erreur: ${error}`);
+        });
+    </script>
+</body>
+</html>

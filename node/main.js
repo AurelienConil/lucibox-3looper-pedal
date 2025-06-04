@@ -10,7 +10,10 @@ class LuciboxBridge {
     this.oscManager = new OSCManager();
     this.arduinoManager = new ArduinoManager();
     this.midiManager = new MIDIManager();
-    this.webManager = new WebManager();
+    this.webManager = new WebManager({
+      autoOpenBrowser: false,        // Ouvre automatiquement le navigateur
+      htmlFileName: 'index.html'    // Nom du fichier HTML à ouvrir
+    });
     this.PdManager = new PdManager();
     
     this.setupMessageRouting();
@@ -45,10 +48,27 @@ class LuciboxBridge {
     });
 
     // Web -> OSC/Audio
-    this.webManager.onMessage((message) => {
-      // TODO: Router message web vers OSC ou contrôle audio
-      console.log('Web message received:', message);
-    });
+      this.webManager.onMessage((eventType, data, clientId) => {
+        console.log(`Reçu ${eventType} de ${clientId}:`, data);
+        
+        switch(eventType) {
+          case 'slider_change':
+            // Traiter le changement de slider
+            console.log(`Slider ${data.slider} changé à ${data.value} ` );
+            //check if data.adress exists, if yet, send to OSC
+            console.log( `Adresse: ${data.address}, Valeur: ${data.value}` );
+            if (data.address && data.value !== undefined) {
+              this.oscManager.sendMessage(data.address, data.value);
+              console.log(`OSC -> ${data.address} ${data.value}`);
+            }
+            break;
+            
+          case 'button_click':
+            // Traiter le clic de bouton
+            console.log(`Bouton ${data.button} cliqué ` );
+            break;
+        }
+      });
 
     // OSC -> Arduino/Web
     // Le routing OSC -> Arduino sera maintenant :
@@ -79,7 +99,7 @@ class LuciboxBridge {
       this.oscManager.initialize();
       await this.arduinoManager.findAndConnect();
       this.midiManager.initialize();
-      this.webManager.start();
+      this.webManager.start(3000);
       
       // Démarrage de l'écoute OSC
       this.oscManager.startListening();
