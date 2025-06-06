@@ -1,23 +1,16 @@
-#N canvas 295 62 957 786 10;
+#N canvas 397 62 957 786 10;
 #X declare -path ../;
-#X obj 172 60 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144 -1
--1;
-#X obj 193 60 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144 -1
--1;
-#X obj 220 60 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144 -1
--1;
+#X obj 172 60 bng 15 250 50 0 empty empty empty 17 7 0 10 #fcfcfc #000000 #000000;
+#X obj 193 60 bng 15 250 50 0 empty empty empty 17 7 0 10 #fcfcfc #000000 #000000;
+#X obj 220 60 bng 15 250 50 0 empty empty empty 17 7 0 10 #fcfcfc #000000 #000000;
 #X obj 292 688 s \$1_\$2_readloop_volume_fromUI;
 #N canvas 716 201 679 427 volume 0;
-#X floatatom 244 309 5 0 0 0 - - -;
-#X obj 85 103 vsl 10 71 0 100 0 0 empty empty empty 0 -9 0 10 -170864
--1 -1 0 0;
+#X floatatom 244 309 5 0 0 0 - - - 0;
+#X obj 85 103 vsl 10 71 0 100 0 0 empty empty empty 0 -9 0 10 #a4b4bc #000000 #000000 0 0;
 #X msg 247 502 \; \$3_slider vis_size \$2 \$1;
-#X obj 83 101 cnv 8 14 80 empty empty empty 20 12 0 14 -99865 -66577
-0;
-#X obj 84 103 cnv 5 12 76 empty empty empty 20 12 0 14 -1375 -66577
-0;
-#X obj 84 103 cnv 3 12 67 empty \$0_slider empty 20 12 0 14 -170864
--66577 0;
+#X obj 83 101 cnv 8 14 80 empty empty empty 20 12 0 14 #606060 #404040 0;
+#X obj 84 103 cnv 5 12 76 empty empty empty 20 12 0 14 #005478 #404040 0;
+#X obj 84 103 cnv 3 12 67 empty \$0_slider empty 20 12 0 14 #a4b4bc #404040 0;
 #X obj 244 339 / 100;
 #X obj 244 370 * -1;
 #X obj 244 401 + 1;
@@ -53,12 +46,9 @@
 #X msg 543 470 32;
 #X text 550 -75 Display the real tempo of the loop;
 #X text 501 184 Display is the loop is active or not;
-#X obj 88 60 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144 -1
--1;
-#X obj 121 61 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144 -1
--1;
-#X obj 148 61 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144 -1
--1;
+#X obj 88 60 bng 15 250 50 0 empty empty empty 17 7 0 10 #fcfcfc #000000 #000000;
+#X obj 121 61 bng 15 250 50 0 empty empty empty 17 7 0 10 #fcfcfc #000000 #000000;
+#X obj 148 61 bng 15 250 50 0 empty empty empty 17 7 0 10 #fcfcfc #000000 #000000;
 #X msg 553 142 \; \$1_temposlider label \$2;
 #N canvas 430 216 1038 529 play 0;
 #X obj 270 -14 t b f;
@@ -67,16 +57,12 @@
 #X msg 294 49 \; \$4_playsquare color \$1 \$2 \$3;
 #X msg 256 -48 46;
 #X obj 368 -95 loadbang;
-#X obj 105 101 hradio 23 1 0 2 empty empty empty 0 -8 0 10 -262144
--1 -1 1;
-#X obj 100 100 cnv 15 59 24 empty \$0_playcnv PLAY 20 12 0 15 -1 -66577
-0;
-#X obj 104 106 cnv 13 13 13 empty \$0_playsquare empty 6 9 0 14 -66577
--262144 0;
+#X obj 105 101 hradio 23 1 0 2 empty empty empty 0 -8 0 10 #fcfcfc #000000 #000000 0;
+#X obj 100 100 cnv 15 59 24 empty \$0_playcnv PLAY 20 12 0 15 #000000 #404040 0;
+#X obj 104 106 cnv 13 13 13 empty \$0_playsquare empty 6 9 0 14 #404040 #fcfcfc 0;
 #X obj 105 214 bang;
 #X obj 101 260 outlet;
-#X obj 256 -110 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1
-0 1;
+#X obj 256 -110 tgl 15 0 empty empty empty 17 7 0 10 #fcfcfc #000000 #000000 0 1;
 #X obj 256 -83 sel 1;
 #X msg 256 -169 bang;
 #X obj 256 -243 inlet;
@@ -122,20 +108,17 @@
 #X connect 27 0 11 0;
 #X coords 0 -1 1 1 60 25 2 100 100;
 #X restore 172 142 pd play;
-#X obj 117 170 hsl 116 30 0 1 0 0 empty \$0_temposlider 0 85 24 0 10
--262144 -262144 -262144 0 1;
+#X obj 117 170 hsl 116 30 0 1 0 0 empty \$0_temposlider 0 85 24 0 10 #fcfcfc #fcfcfc #fcfcfc 0 1;
 #N canvas 402 345 1038 529 open 0;
 #X text 462 314 label-color;
 #X text 477 339 label-color;
 #X obj 377 311 t b f;
 #X msg 400 277 2;
 #X obj 551 220 loadbang;
-#X obj 104 101 hradio 15 1 0 2 empty empty empty 0 -8 0 10 -262144
--1 -1 1;
+#X obj 104 101 hradio 15 1 0 2 empty empty empty 0 -8 0 10 #fcfcfc #000000 #000000 0;
 #X obj 104 166 bang;
 #X msg 363 277 43;
-#X obj 101 101 cnv 15 38 15 empty \$0_opencnv open 6 8 0 10 -66577
--262144 0;
+#X obj 101 101 cnv 15 38 15 empty \$0_opencnv open 6 8 0 10 #404040 #fcfcfc 0;
 #X msg 536 421 \; \$4_opencnv color \$1 \$2 \$3;
 #X obj 363 197 bang;
 #X obj 535 388 pack 43 0 0 \$0;
@@ -160,12 +143,10 @@
 #X obj 377 311 t b f;
 #X msg 400 277 2;
 #X obj 551 220 loadbang;
-#X obj 116 101 hradio 15 1 0 2 empty empty empty 0 -8 0 10 -262144
--1 -258113 0;
+#X obj 116 101 hradio 15 1 0 2 empty empty empty 0 -8 0 10 #fcfcfc #000000 #fc0400 0;
 #X obj 109 151 bang;
 #X msg 363 277 43;
-#X obj 101 101 cnv 15 48 15 empty \$0_delcnv delete 8 8 0 8 -66577
--258699 0;
+#X obj 101 101 cnv 15 48 15 empty \$0_delcnv delete 8 8 0 8 #404040 #fc2828 0;
 #X obj 363 197 bang;
 #X obj 380 239 delay 200;
 #X msg 406 383 \; \$4_delcnv color \$1 \$2 \$3;
@@ -189,35 +170,27 @@
 #X msg 528 325 bang;
 #X msg 570 326 stop;
 #X obj 577 297 t b b;
-#X obj 549 391 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
-1;
+#X obj 549 391 tgl 15 0 empty empty empty 17 7 0 10 #fcfcfc #000000 #000000 0 1;
 #X obj 549 420 sel 1;
 #X obj 603 450 bang;
 #X obj 534 366 metro 100;
 #X obj -28 537 pack \$1 \$2 \$0;
 #X obj -28 508 loadbang;
-#X obj -48 509 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
--1 -1;
-#X obj 112 102 hradio 28 1 0 4 empty empty empty 0 -8 0 10 -262144
--1 -1 2;
-#X obj 101 101 cnv 15 137 30 empty \$0_bgcnv LOOPER_3_1 20 12 0 18
--262144 -66577 0;
+#X obj -48 509 bng 15 250 50 0 empty empty empty 17 7 0 10 #fcfcfc #000000 #000000;
+#X obj 112 102 hradio 28 1 0 4 empty empty empty 0 -8 0 10 #fcfcfc #000000 #000000 0;
+#X obj 101 101 cnv 15 137 30 empty \$0_bgcnv LOOPER_1_1 20 12 0 18 #fcfcfc #404040 0;
 #X obj 704 -43 loadbang;
 #N canvas 419 233 1038 529 rec 0;
 #X obj 269 7 t b f;
 #X msg 292 -27 2;
 #X obj 296 31 pack 22 0 0 \$0;
 #X obj 348 -85 loadbang;
-#X obj 104 101 hradio 23 1 0 2 empty empty empty 0 -8 0 10 -262144
--1 -1 0;
-#X obj 100 100 cnv 15 60 25 empty \$0_reccnv REC 20 12 0 15 -1 -66577
-0;
-#X obj 105 106 cnv 13 13 13 empty \$0_recsquare empty 6 9 0 14 -66577
--262144 0;
+#X obj 104 101 hradio 23 1 0 2 empty empty empty 0 -8 0 10 #fcfcfc #000000 #000000 0;
+#X obj 100 100 cnv 15 60 25 empty \$0_reccnv REC 20 12 0 15 #000000 #404040 0;
+#X obj 105 106 cnv 13 13 13 empty \$0_recsquare empty 6 9 0 14 #404040 #fcfcfc 0;
 #X obj 105 214 bang;
 #X obj 101 260 outlet;
-#X obj 136 -110 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1
-0 1;
+#X obj 136 -110 tgl 15 0 empty empty empty 17 7 0 10 #fcfcfc #000000 #000000 0 1;
 #X obj 136 -83 sel 1;
 #X msg 136 -173 bang;
 #X obj 136 -242 inlet;
@@ -274,12 +247,10 @@
 #X obj 377 311 t b f;
 #X msg 400 277 2;
 #X obj 551 220 loadbang;
-#X obj 104 101 hradio 15 1 0 2 empty empty empty 0 -8 0 10 -262144
--1 -1 0;
+#X obj 104 101 hradio 15 1 0 2 empty empty empty 0 -8 0 10 #fcfcfc #000000 #000000 0;
 #X obj 104 166 bang;
 #X msg 363 277 43;
-#X obj 101 101 cnv 15 38 15 empty \$0_undocnv undo 6 8 0 10 -66577
--262144 0;
+#X obj 101 101 cnv 15 38 15 empty \$0_undocnv undo 6 8 0 10 #404040 #fcfcfc 0;
 #X obj 363 197 bang;
 #X obj 535 388 pack 43 0 0 \$0;
 #X obj 380 239 delay 200;
