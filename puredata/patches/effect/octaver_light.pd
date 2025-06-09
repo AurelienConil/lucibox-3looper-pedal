@@ -1,4 +1,5 @@
-#N canvas 213 23 1467 583 12;
+#N canvas 45 38 1467 583 12;
+#X declare -path ../;
 #X obj 337 109 audio/shifter_high 1;
 #X obj 411 164 audio/shifter_high 2;
 #X obj 106 113 audio/shifter_low 1;
@@ -51,6 +52,7 @@
 #X obj 1062 249 * 1;
 #X obj 638 -112 - 127;
 #X msg 828 -140 127;
+#X obj 115 -114 declare -path ../;
 #X connect 0 0 11 0;
 #X connect 0 1 1 0;
 #X connect 1 0 11 0;

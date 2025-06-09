@@ -1,4 +1,4 @@
-#N canvas 0 38 1512 863 10;
+#N canvas 241 203 1074 545 10;
 #X declare -path ../;
 #X obj -186 37 cnv 15 1200 70 empty empty FROM::INLET 20 12 0 14 #c4d8e0 #404040 0;
 #X obj 176 42 inlet;
@@ -231,7 +231,6 @@
 #X msg 410 213 0;
 #X msg 457 212 1;
 #X msg 245 213 1;
-#X obj 337 588 print;
 #X connect 0 0 1 0;
 #X connect 1 0 8 0;
 #X connect 1 1 9 0;
@@ -243,9 +242,7 @@
 #X connect 5 1 6 0;
 #X connect 6 0 1 0;
 #X connect 8 0 7 0;
-#X connect 8 0 17 0;
 #X connect 9 0 7 0;
-#X connect 9 0 17 0;
 #X connect 10 0 8 0;
 #X connect 10 1 9 0;
 #X connect 11 0 10 0;
