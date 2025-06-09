@@ -17,20 +17,22 @@ int values[MAX_VALUES];
 
 // Instances des contrôleurs
 Potentiometer potars[] = {
-  Potentiometer(A0, "/lucibox/volume"),
-  // Potentiometer(A1, "/lucibox/filter"),
-  // Potentiometer(A2, "/lucibox/feedback")
+  Potentiometer(A0, "/lucibox/octaver/drywet"),
+  Potentiometer(A1, "/lucibox/delay/feedback"),
+  Potentiometer(A2, "/lucibox/delay/drywet"),
+  Potentiometer(A3, "/lucibox/reverb/drywet")
 };
 
 Button buttons[] = {
-  Button(2, "/lucibox/loop/channel1/rec"),
-  Button(3, "/lucibox/loop/channel1/play"),
-  Button(4, "/lucibox/loop/channel2/rec"),
-  Button(5, "/lucibox/loop/channel2/play"),
-  Button(6, "/lucibox/loop/channel3/rec"),
-  Button(7, "/lucibox/loop/channel3/play"),
-  Button(8, "/lucibox/mode/switch"),
-  Button(9, "/lucibox/clear/all")
+  
+  Button(2, "/lucibox/loop/channel3/play"),
+  Button(3, "/lucibox/loop/channel3/rec"),
+  Button(4, "/lucibox/loop/channel2/play"),
+  Button(5, "/lucibox/loop/channel2/rec"),
+  Button(6, "/lucibox/loop/channel1/play"),
+  Button(7, "/lucibox/loop/channel1/rec"),
+  Button(8, "/lucibox/global/play")
+  
 };
 
 LedStrip ledStrip;

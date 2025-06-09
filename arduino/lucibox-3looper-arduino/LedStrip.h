@@ -7,6 +7,7 @@
 // Configuration globale
 #define PIN            12
 #define NUMPIXELS      12
+//#define INVERT // Uncomment if the fisrt pixels is n° 0 or N° 11
 
 struct LedStrip {
   int ledStates[NUMPIXELS];
@@ -115,8 +116,11 @@ struct LedStrip {
         case 0: // OFF
           finalr = 0; finalg = 0; finalb = 0;
           break;
-        case 2: // RED
+        case 1: // MEDIUM RED
           finalr = 0; finalg = 25; finalb = 0;
+          break;
+        case 2: // RED
+          finalr = 0; finalg = 35; finalb = 0;
           break;
         case 3: // LIGHT WHITE
           finalr = 2; finalg = 2; finalb = 2;
@@ -134,8 +138,11 @@ struct LedStrip {
           finalr = 25; finalg = 0; finalb = 0;
           break;
       }
-      
+#ifdef INVERT
       pixels.setPixelColor(NUMPIXELS - (channel + 1), pixels.Color(finalr, finalg, finalb));
+#else
+      pixels.setPixelColor(channel , pixels.Color(finalr, finalg, finalb));
+#endif
     }
   }
 };
