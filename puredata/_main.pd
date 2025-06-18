@@ -238,6 +238,8 @@
 #X obj 97 314 pack 4 1 f;
 #X obj 281 312 pack 4 2 f;
 #X msg 129 228 5;
+#X obj 431 110 loadbang;
+#X msg 420 154 7;
 #X connect 0 0 4 0;
 #X connect 1 0 3 0;
 #X connect 2 0 21 0;
@@ -269,6 +271,8 @@
 #X connect 23 0 1 0;
 #X connect 24 0 1 0;
 #X connect 25 0 2 0;
+#X connect 26 0 27 0;
+#X connect 27 0 13 0;
 #X restore 21 548 pd tempo_to_stripled;
 #X floatatom 688 50 5 0 0 0 - - - 0;
 #N canvas 411 449 450 300 delay_osc 0;

@@ -28,6 +28,7 @@ struct LedStrip {
   }
 
   void clear() {
+    
     for(int i = 0; i < NUMPIXELS; i++) {
       ledStates[i] = 0;
     }

@@ -23,6 +23,11 @@ class ArduinoManager {
         if (isLucibox) {
           console.log(`✓ LUCIBOX found on ${port.path}`);
           this.connectToPort(port.path);
+          // clear the led strip 1 sec after connection
+          setTimeout(() => {  
+          console.log('Clearing LED strip...');
+          this.sendCommand("/lucibox/led/strip/clear 0 0");
+          }, 2000);
           return;
         }
       }
@@ -97,6 +102,7 @@ class ArduinoManager {
     this.serialPort.on('open', () => {
       console.log(`Connected to Arduino on ${portPath}`);
       this.isConnected = true;
+      
     });
 
     this.serialPort.on('error', (err) => {

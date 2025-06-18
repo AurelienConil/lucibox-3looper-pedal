@@ -45,8 +45,6 @@ const int NUM_BUTTONS = sizeof(buttons) / sizeof(buttons[0]);
 //---------------------------------------------------------
 
 void setup() {
-  Serial.begin(38400);
-  while(!Serial);
   
   // Initialisation des potentiomètres
   for(int i = 0; i < NUM_POTARS; i++) {
@@ -60,9 +58,14 @@ void setup() {
   
   // Initialisation des LEDs
   ledStrip.pixels.begin();
-  ledStrip.clear();
+  ledStrip.setFader(100,2);
   
+  // Try to connect to serial . Display something until the serial is connected
+  Serial.begin(38400);
+  int fader = 0;
+
   Serial.println("# LUCIBOX OSC Interface Ready");
+  //ledStrip.clear();
 }
 
 void loop() {
@@ -144,11 +147,12 @@ void parseOSCMessage(String message) {
     }
   }
   // -------------- CLEAR ------------------------
-  else if(message.equals("/lucibox/led/strip/clear")) {
+  else if(message.startsWith("/lucibox/led/strip/clear")) {
+    Serial.println("# Clear pixels");
     ledStrip.clear();
   }
   // -------------- LOOPER  ------------------------
-  else if(message.startsWith("/lucibox/led/strip/looper")) {
+  else if(message.startsWith("/lucibox/led/strip/looper")) {  
     // Pattern pour looper: affiche le statut des 4 channels
     // Format attendu: "/lucibox/led/strip/looper looperchannel ledindex value"
 
