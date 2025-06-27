@@ -55,9 +55,9 @@ class WebManager {
       });
 
       // Écouter les événements des boutons
-      socket.on('button_click', (data) => {
+      socket.on('command_request', (data) => {
         if (this.messageCallback) {
-          this.messageCallback('button_click', data, socket.id);
+          this.messageCallback('command_request', data, socket.id);
         }
       });
 

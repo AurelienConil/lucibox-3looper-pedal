@@ -3,6 +3,7 @@ const ArduinoManager = require('./modules/ArduinoManager');
 const MIDIManager = require('./modules/MIDIManager');
 const WebManager = require('./modules/WebManager');
 const PdManager = require('./modules/PdManager');
+const CLManager = require('./modules/CLManager');
 
 class LuciboxBridge {
   constructor() {
@@ -15,6 +16,17 @@ class LuciboxBridge {
       htmlFileName: 'index.html'    // Nom du fichier HTML à ouvrir
     });
     this.PdManager = new PdManager();
+    this.clManager = new CLManager({
+      projectRoot: __dirname,
+      allowedCommands: [
+        'git_pull',
+        'restart',
+        'poweroff', 
+        'reboot',
+        'update_system',
+        'check_status'
+      ]
+    });
     
     this.setupMessageRouting();
   }
@@ -47,28 +59,49 @@ class LuciboxBridge {
       console.log('MIDI message received:', message);
     });
 
-    // Web -> OSC/Audio
-      this.webManager.onMessage((eventType, data, clientId) => {
-        console.log(`Reçu ${eventType} de ${clientId}:`, data);
-        
-        switch(eventType) {
-          case 'slider_change':
-            // Traiter le changement de slider
-            console.log(`Slider ${data.slider} changé à ${data.value} ` );
-            //check if data.adress exists, if yet, send to OSC
-            console.log( `Adresse: ${data.address}, Valeur: ${data.value}` );
-            if (data.address && data.value !== undefined) {
-              this.oscManager.sendMessage(data.address, data.value);
-              console.log(`OSC -> ${data.address} ${data.value}`);
-            }
-            break;
-            
-          case 'button_click':
-            // Traiter le clic de bouton
-            console.log(`Bouton ${data.button} cliqué ` );
-            break;
-        }
+       // CLManager -> Web (pour notifier l'interface des résultats de commandes)
+    this.clManager.onMessage((type, data) => {
+      console.log(`CLManager event: ${type}`, data);
+      
+      // Envoyer les notifications vers l'interface web
+      this.webManager.broadcast('command_status', {
+        type,
+        ...data
       });
+      
+      // Si c'est un git pull réussi, on peut envoyer un message OSC
+      if (type === 'command_completed' && data.command === 'git_pull' && data.success) {
+        this.oscManager.sendMessage('/lucibox/system/updated', 1);
+      }
+    });
+
+    // Web -> OSC/Audio/CLManager
+    this.webManager.onMessage((eventType, data, clientId) => {
+      console.log(`Reçu ${eventType} de ${clientId}:`, data);
+      
+      switch(eventType) {
+        case 'slider_change':
+          // Traiter le changement de slider (logique existante)
+          console.log(`Slider ${data.slider} changé à ${data.value}`);
+          if (data.address && data.value !== undefined) {
+            this.oscManager.sendMessage(data.address, data.value);
+            console.log(`OSC -> ${data.address} ${data.value}`);
+          }
+          break;
+          
+        case 'button_click':
+          // Traiter le clic de bouton (logique existante)
+          console.log(`Bouton ${data.button} cliqué`);
+          break;
+          
+        case 'command_request':
+          // Nouvelle gestion pour les commandes système
+          console.log(`Requête de commande reçue: ${data.command} avec params`, data.params);
+          this.handleCommandRequest(data, clientId);
+          break;
+      }
+    });
+
 
     // OSC -> Arduino/Web
     // Le routing OSC -> Arduino sera maintenant :
@@ -88,6 +121,53 @@ class LuciboxBridge {
     });
   }
 
+  // Gestion des requêtes de commandes système
+  async handleCommandRequest(data, clientId) {
+    const { command, params = {} } = data;
+    
+    try {
+      console.log(`Exécution de la commande "${command}" demandée par ${clientId}`);
+      
+      // Vérifier si la commande existe
+      const availableCommands = this.clManager.getAvailableCommands();
+      const commandExists = availableCommands.some(cmd => cmd.name === command);
+      
+      if (!commandExists) {
+        throw new Error(`Commande inconnue: ${command}`);
+      }
+      
+      // Envoyer confirmation de démarrage via Socket.IO
+      this.webManager.sendToClient(clientId, 'command_status', {
+        type: 'command_started',
+        command,
+        message: `Exécution de ${command}...`
+      });
+      
+      // Exécuter la commande
+      const result = await this.clManager.executeCommand(command, params);
+      
+      // Envoyer le résultat via Socket.IO
+      this.webManager.sendToClient(clientId, 'command_status', {
+        type: 'command_completed',
+        command,
+        success: true,
+        result,
+        message: `${command} exécuté avec succès`
+      });
+      
+    } catch (error) {
+      console.error(`Erreur lors de l'exécution de ${command}:`, error.message);
+      
+      // Envoyer l'erreur au client via Socket.IO
+      this.webManager.sendToClient(clientId, 'command_status', {
+        type: 'command_error',
+        command,
+        error: error.message,
+        message: `Erreur lors de l'exécution de ${command}`
+      });
+    }
+  }
+
   // Démarre tous les services
   async start() {
     console.log("//////////////////////");
@@ -103,6 +183,11 @@ class LuciboxBridge {
       
       // Démarrage de l'écoute OSC
       this.oscManager.startListening();
+
+      // Le CLManager n'a pas besoin d'initialisation spéciale
+      console.log('CLManager ready with commands:', 
+        this.clManager.getAvailableCommands().map(cmd => cmd.name).join(', ')
+      );
       
       console.log('All modules started successfully');
       
@@ -119,7 +204,7 @@ class LuciboxBridge {
     this.arduinoManager.disconnect();
     this.midiManager.disconnect();
     this.webManager.stop();
-    //this.audioManager.stop();
+    this.clManager.stop();
     
     console.log('Bridge stopped');
   }
