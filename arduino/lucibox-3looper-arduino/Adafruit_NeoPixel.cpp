@@ -1,4 +1,4 @@
-/*-------------------------------------------------------------------------
+           /*-------------------------------------------------------------------------
   Arduino library to control a wide variety of WS2811- and WS2812-based RGB
   LED devices such as Adafruit FLORA RGB Smart Pixels and NeoPixel strips.
   Currently handles 400 and 800 KHz bitstreams on 8, 12 and 16 MHz ATmega

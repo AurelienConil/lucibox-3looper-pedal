@@ -95,7 +95,7 @@
 #X obj 203 228 t b b;
 #X obj 181 4 extra/sv tempo_isplaying;
 #X text 213 22 Change on tempo;
-#N canvas 777 235 663 436 final_tempo_sender 1;
+#N canvas 777 235 663 436 final_tempo_sender 0;
 #X obj 252 107 inlet;
 #X obj 370 107 inlet;
 #X obj 493 107 inlet;
@@ -166,6 +166,9 @@
 #X obj 731 -102 cnv 15 100 120 empty empty DSP_ON 20 12 0 14 #e0e0e0 #404040 0;
 #X obj 755 -57 loadbang;
 #X msg 755 -26 \; pd dsp 1;
+#X obj 732 35 cnv 15 100 120 empty empty METRONOME 20 12 0 14 #e0e0e0 #404040 0;
+#X obj 750 114 metronome;
+#X obj 736 67 r tempo_click_bang;
 #X connect 4 0 8 0;
 #X connect 4 1 7 0;
 #X connect 5 0 10 0;
@@ -183,4 +186,5 @@
 #X connect 15 0 9 1;
 #X connect 16 0 17 0;
 #X connect 19 0 20 0;
+#X connect 23 0 22 0;
 #X coords 0 659 1 658 1000 60 0;
