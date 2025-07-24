@@ -178,16 +178,16 @@ class LuciboxBridge {
       // Initialisation des modules
       this.oscManager.initialize();
       await this.arduinoManager.findAndConnect();
-      this.midiManager.initialize();
-      this.webManager.start(3000);
+      //this.midiManager.initialize();
+      //this.webManager.start(3000);
       
       // Démarrage de l'écoute OSC
       this.oscManager.startListening();
 
       // Le CLManager n'a pas besoin d'initialisation spéciale
-      console.log('CLManager ready with commands:', 
-        this.clManager.getAvailableCommands().map(cmd => cmd.name).join(', ')
-      );
+      // console.log('CLManager ready with commands:', 
+      //   this.clManager.getAvailableCommands().map(cmd => cmd.name).join(', ')
+      // );
       
       console.log('All modules started successfully');
       
@@ -202,9 +202,9 @@ class LuciboxBridge {
     
     this.oscManager.stop();
     this.arduinoManager.disconnect();
-    this.midiManager.disconnect();
-    this.webManager.stop();
-    this.clManager.stop();
+   // this.midiManager.disconnect();
+    //this.webManager.stop();
+    //this.clManager.stop();
     
     console.log('Bridge stopped');
   }
