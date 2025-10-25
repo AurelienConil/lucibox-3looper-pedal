@@ -447,6 +447,7 @@
         async function updateCpuInfo() {
             try {
                 const result = await requestCommand('cpu_temp');
+                 console.log('Données CPU reçues:', result); // Ajout d'un log pour vérifier les données
                 const { cpuUsage, temperature } = result;
                 cpuTempDisplay.textContent = `CPU: ${cpuUsage}% | Température: ${temperature}`;
             } catch (error) {
