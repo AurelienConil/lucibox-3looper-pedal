@@ -319,7 +319,7 @@ class CLManager {
 
           resolve({
             cpuUsage: totalCpuUsage.toFixed(1), // Utilisation totale du CPU
-            temperature: `${temperature.toFixed(1)}°C`
+            temperature: temperature.toFixed(1)
           });
         } catch (parseError) {
           reject(new Error(`Erreur lors de l'analyse des données: ${parseError.message}`));
