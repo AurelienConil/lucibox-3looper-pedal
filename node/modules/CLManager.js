@@ -107,9 +107,9 @@ class CLManager {
   async _gitPull() {
     return new Promise((resolve, reject) => {
       const commands = [
-        'rw', // Passer en mode lecture-écriture
+        'sudo mount -o remount,rw / && sudo mount -o remount,rw /boot', // Passer en mode lecture-écriture
         'git pull',
-        'ro'  // Revenir en mode readonly
+        'sudo mount -o remount,ro / && sudo mount -o remount,ro /boot'  // Revenir en mode readonly
       ];
 
       const gitProcess = exec(commands.join(' && '), {
