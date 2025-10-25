@@ -11,3 +11,10 @@ password : raspberry
 patch@patchbox(rw):~$ systemctl --user stop lucibox-pd.service
 patch@patchbox(rw):~$ systemctl --user stop lucibox-node.service
 
+
+# Services journal
+
+ journalctl --user-unit=lucibox-node.service
+
+ 
+

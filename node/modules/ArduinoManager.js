@@ -44,7 +44,7 @@ class ArduinoManager {
       const timeout = setTimeout(() => {
         cleanup();
         resolve(false);
-      }, 2500); // 3 secondes timeout
+      }, 3000); // 3 secondes timeout
       
       let testPort;
       
