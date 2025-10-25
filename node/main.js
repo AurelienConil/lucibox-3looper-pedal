@@ -179,7 +179,7 @@ class LuciboxBridge {
       this.oscManager.initialize();
       await this.arduinoManager.findAndConnect();
       //this.midiManager.initialize();
-      //this.webManager.start(3000);
+      this.webManager.start(3000);
       
       // Démarrage de l'écoute OSC
       this.oscManager.startListening();

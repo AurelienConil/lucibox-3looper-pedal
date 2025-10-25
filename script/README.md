@@ -1,0 +1,13 @@
+# Connect to ssh
+
+ssh patch@patchbox.local
+
+password : raspberry
+
+
+
+# Stop services
+
+patch@patchbox(rw):~$ systemctl --user stop lucibox-pd.service
+patch@patchbox(rw):~$ systemctl --user stop lucibox-node.service
+
