@@ -133,12 +133,12 @@ class WebManager {
     }
   }
 
-  // Envoie un message à un client spécifique
-  sendToClient(clientId, message) {
+  // Envoie un message à un client spécifique, avec type d'événement personnalisé
+  sendToClient(clientId, eventType, payload) {
     const client = this.clients.get(clientId);
     if (client && client.socket) {
-      client.socket.emit('server_message', { message: message });
-      console.log(`Sending to client ${clientId}: ${message}`);
+      client.socket.emit(eventType, payload);
+      console.log(`Sending to client ${clientId}: ${eventType}`);
     } else {
       console.log(`Client ${clientId} not found`);
     }

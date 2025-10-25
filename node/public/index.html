@@ -127,35 +127,7 @@
             border-left: 4px solid #2196f3;
         }
         
-        .slider-container {
-            margin: 15px 0;
-        }
-        
-        .slider-container label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
-        }
-        
-        .slider {
-            width: 100%;
-            height: 8px;
-            border-radius: 5px;
-            background: rgba(255, 255, 255, 0.3);
-            outline: none;
-            -webkit-appearance: none;
-        }
-        
-        .slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: #ffffff;
-            cursor: pointer;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-        }
+
         
         .connection-status {
             z-index: 1000;
@@ -177,6 +149,37 @@
             background: rgba(244, 67, 54, 0.9);
             color: white;
         }
+        
+        .version-info {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .version-info h3 {
+            margin: 0 0 10px 0;
+            font-size: 1.2em;
+        }
+        
+        .commit-info {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            margin-bottom: 10px;
+            min-height: 20px;
+        }
+        
+        .commit-info .loading {
+            color: #aaa;
+            font-style: italic;
+        }
+        
+        .commit-info .commit-text {
+            color: #fff;
+        }
     </style>
 </head>
 <body>
@@ -188,15 +191,21 @@
         <!-- Section Système -->
         <div class="section">
             <h2>⚙️ Système</h2>
+            
+            <!-- Informations version -->
+            <div class="version-info">
+                <h3>📝 Version actuelle</h3>
+                <div id="currentCommit" class="commit-info">
+                    <span class="loading">Chargement...</span>
+                </div>
+                <button class="cmd-button system" onclick="refreshCommitInfo()">
+                    � Actualiser
+                </button>
+            </div>
+            
             <div class="button-grid">
                 <button class="cmd-button update" onclick="executeCommand('git_pull')">
-                    📥 Git Pull
-                </button>
-                <button class="cmd-button system" onclick="executeCommand('check_status')">
-                    📊 Check Status
-                </button>
-                <button class="cmd-button update" onclick="executeCommand('update_system')">
-                    🔄 Update System
+                    � Git Pull
                 </button>
                 <button class="cmd-button system" onclick="executeCommand('restart')">
                     🔄 Restart Service
@@ -205,21 +214,11 @@
                     🔁 Reboot System
                 </button>
                 <button class="cmd-button danger" onclick="executeCommand('poweroff')">
-                    🔌 Power Off
+                    🔌 Shutdown
                 </button>
-            </div>
-        </div>
-        
-        <!-- Section Audio Control -->
-        <div class="section">
-            <h2>🎚️ Audio Control</h2>
-            <div class="slider-container">
-                <label for="volumeSlider">Volume Principal: <span id="volumeValue">50</span>%</label>
-                <input type="range" id="volumeSlider" class="slider" min="0" max="100" value="50">
-            </div>
-            <div class="slider-container">
-                <label for="reverbSlider">Reverb: <span id="reverbValue">25</span>%</label>
-                <input type="range" id="reverbSlider" class="slider" min="0" max="100" value="25">
+                <button class="cmd-button system" onclick="executeCommand('check_status')">
+                    📊 Check Status
+                </button>
             </div>
         </div>
         
@@ -303,6 +302,12 @@
                     if (result && result.output) {
                         addStatusMessage(`📄 Output: ${result.output}`, 'info');
                     }
+                    
+                    // Mettre à jour l'affichage du commit si c'est une commande git_commit
+                    if (command === 'git_commit' && result) {
+                        updateCommitDisplay(result);
+                    }
+                    
                     disableCommandButtons(false);
                     break;
                     
@@ -337,17 +342,21 @@
             addStatusMessage(`🚀 Commande "${command}" envoyée`, 'info');
         }
         
-        function updateSlider(sliderName, value, address) {
-            document.getElementById(sliderName + 'Value').textContent = value;
+        function refreshCommitInfo() {
+            const commitElement = document.getElementById('currentCommit');
+            commitElement.innerHTML = '<span class="loading">Chargement...</span>';
             
-            // Emission du changement de slider
-            socket.emit('slider_change', {
-                slider: sliderName,
-                value: parseInt(value),
-                address: address
-            });
-            
-            console.log(`Slider ${sliderName} changé:`, value);
+            // Demander les informations du commit
+            executeCommand('git_commit');
+        }
+        
+        function updateCommitDisplay(commitInfo) {
+            const commitElement = document.getElementById('currentCommit');
+            if (commitInfo && commitInfo.commit) {
+                commitElement.innerHTML = `<span class="commit-text">${commitInfo.commit}</span>`;
+            } else {
+                commitElement.innerHTML = '<span class="loading">Informations non disponibles</span>';
+            }
         }
         
         function disableCommandButtons(disabled) {
@@ -361,17 +370,12 @@
         document.addEventListener('DOMContentLoaded', function() {
             addStatusMessage('Interface chargée, connexion en cours...', 'info');
             
-            // Attacher les événements aux sliders après le chargement du DOM
-            const volumeSlider = document.getElementById('volumeSlider');
-            const reverbSlider = document.getElementById('reverbSlider');
-            
-            volumeSlider.addEventListener('input', function() {
-                updateSlider('volume', this.value, '/lucibox/volume');
-            });
-            
-            reverbSlider.addEventListener('input', function() {
-                updateSlider('reverb', this.value, '/lucibox/reverb');
-            });
+            // Charger les informations du commit au démarrage
+            setTimeout(() => {
+                if (socket.connected) {
+                    refreshCommitInfo();
+                }
+            }, 1000);
         });
     </script>
 </body>

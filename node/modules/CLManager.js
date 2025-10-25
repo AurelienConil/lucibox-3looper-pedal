@@ -6,7 +6,7 @@ class CLManager {
   constructor(options = {}) {
     this.allowedCommands = options.allowedCommands || [
       'git_pull',
-      'restart',
+      'git_commit',
       'poweroff',
       'reboot',
       'update_system',
@@ -79,8 +79,8 @@ class CLManager {
       case 'git_pull':
         return await this._gitPull();
         
-      case 'restart':
-        return await this._restart();
+      case 'git_commit':
+        return await this._gitCommit();
         
       case 'poweroff':
         return await this._poweroff();
@@ -123,22 +123,31 @@ class CLManager {
     });
   }
 
-  // Redémarrage du service (pas de l'OS)
-  async _restart() {
-    return new Promise((resolve) => {
-      console.log('Redémarrage du service programmé dans 2 secondes...');
-      
-      setTimeout(() => {
+  // Récupération du commit actuel
+  async _gitCommit() {
+    return new Promise((resolve, reject) => {
+      const gitProcess = exec('git log -1 --pretty=format:"%h - %s (%an, %ar)"', { 
+        cwd: this.projectRoot,
+        timeout: 10000 // 10 secondes max
+      }, (error, stdout, stderr) => {
+        if (error) {
+          reject(new Error(`Git commit info failed: ${error.message}`));
+          return;
+        }
+        
+        const commitInfo = stdout.trim();
+        console.log('Git commit info:', commitInfo);
+        
         resolve({
           success: true,
-          message: 'Redémarrage du service en cours...'
+          commit: commitInfo,
+          message: 'Informations du commit récupérées'
         });
-        
-        // Redémarre le processus Node.js
-        process.exit(0);
-      }, 2000);
+      });
     });
   }
+
+
 
   // Arrêt du système (Raspberry Pi)
   async _poweroff() {
@@ -277,7 +286,7 @@ class CLManager {
   _getCommandDescription(command) {
     const descriptions = {
       'git_pull': 'Met à jour le code depuis Git',
-      'restart': 'Redémarre le service Node.js',
+      'git_commit': 'Récupère les infos du commit actuel',
       'poweroff': 'Éteint le Raspberry Pi',
       'reboot': 'Redémarre le Raspberry Pi',
       'update_system': 'Met à jour le système (apt)',

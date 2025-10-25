@@ -20,6 +20,7 @@ class LuciboxBridge {
       projectRoot: __dirname,
       allowedCommands: [
         'git_pull',
+        'git_commit',
         'restart',
         'poweroff', 
         'reboot',
