@@ -294,99 +294,47 @@
             addStatusMessage(`Notification: ${data.text}`, 'info');
         });
         
-        // Réception des status de commandes
-        socket.on('command_status', (data) => {
-            console.log('Message reçu via command_status:', data);
-            handleCommandStatus(data);
-        });
-        
         // Gestion d'erreurs
         socket.on('error', (error) => {
             addStatusMessage(`Erreur: ${error}`, 'error');
         });
         
-        // Fonction pour récupérer les données CPU et Température
-        function fetchCpuAndTemp() {
-            if (!autoUpdateCheckbox.checked) return;
-
-            socket.emit('command_request', {
-                command: 'cpu_temp'
-            });
-        }
-
-        // Réception des données CPU et Température
-        socket.on('cpu_temp_data', (data) => {
-            const { cpuUsage, temperature } = data;
-            cpuTempDisplay.textContent = `CPU: ${cpuUsage}% | Température: ${temperature}°C`;
-        });
-
-        // Intervalle pour mise à jour automatique
-        setInterval(fetchCpuAndTemp, 2000);
-        
-        function handleCommandStatus(data) {
-            const { type, command, message, error, result } = data;
-            
-            switch (type) {
-                case 'command_started':
-                    addStatusMessage(`⏳ ${message || 'Commande démarrée'}`, 'info');
-                    disableCommandButtons(true);
-                    break;
-                    
-                case 'command_completed':
-                    addStatusMessage(`✅ ${message || 'Commande terminée'}`, 'success');
-                    if (result && result.output) {
-                        addStatusMessage(`📄 Output: ${result.output}`, 'info');
-                    }
-                    
-                    // Mettre à jour l'affichage du commit si c'est une commande git_commit
-                    if (command === 'git_commit' && result) {
-                        console.log('Mise à jour du commit avec les données reçues:', result);
-                        updateCommitDisplay(result);
-                    }
-                    
-                    // Afficher les résultats de check_status
-                    if (command === 'check_status' && result) {
-                        const statusPanel = document.getElementById('statusPanel');
-                        const statusMessage = document.createElement('div');
-                        statusMessage.className = 'status-message status-info';
-                        statusMessage.textContent = `Statut: ${JSON.stringify(result, null, 2)}`;
-                        statusPanel.appendChild(statusMessage);
-                        statusPanel.scrollTop = statusPanel.scrollHeight;
-                    }
-                    
-                    disableCommandButtons(false);
-                    break;
-                    
-                case 'command_error':
-                    addStatusMessage(`❌ Erreur: ${error}`, 'error');
-                    disableCommandButtons(false);
-                    break;
+        // Réécriture des commandes principales
+        async function executeCommand(command) {
+            try {
+                const result = await requestCommand(command);
+                addStatusMessage(`✅ Commande "${command}" exécutée avec succès.`, 'success');
+                return result;
+            } catch (error) {
+                addStatusMessage(`❌ Erreur lors de l'exécution de "${command}": ${error.message}`, 'error');
+                throw error;
             }
         }
-        
-        function executeCommand(command) {
 
-            console.log(`Exécution de la commande: ${command}`);
-            if (!socket.connected) {
-                addStatusMessage('❌ Pas de connexion au serveur', 'error');
-                return;
+        async function updateCpuInfo() {
+            try {
+                const { cpuUsage, temperature } = await executeCommand('cpu_temp');
+                cpuTempDisplay.textContent = `CPU: ${cpuUsage}% | Température: ${temperature}°C`;
+            } catch (error) {
+                console.error('Erreur lors de la mise à jour CPU:', error);
             }
-            
-            // Confirmation pour les commandes dangereuses
-            if (['poweroff', 'reboot'].includes(command)) {
-                if (!confirm(`Êtes-vous sûr de vouloir exécuter "${command}" ?`)) {
-                    return;
-                }
-            }
-            
-            // Emission du message avec la logique Socket.IO existante
-            socket.emit('command_request', {
-                command: command,
-                params: {}
-            });
-            
-            addStatusMessage(`🚀 Commande "${command}" envoyée`, 'info');
         }
+
+        async function updateStatus() {
+            try {
+                const status = await executeCommand('check_status');
+                const statusMessage = document.createElement('div');
+                statusMessage.className = 'status-message status-info';
+                statusMessage.textContent = `Statut: ${JSON.stringify(status, null, 2)}`;
+                statusPanel.appendChild(statusMessage);
+                statusPanel.scrollTop = statusPanel.scrollHeight;
+            } catch (error) {
+                console.error('Erreur lors de la mise à jour du statut:', error);
+            }
+        }
+
+        // Mise à jour automatique CPU et Température
+        setInterval(updateCpuInfo, 2000);
         
         function refreshCommitInfo() {
             const commitElement = document.getElementById('currentCommit');
@@ -405,13 +353,6 @@
                 console.log('Aucune information de commit disponible pour mise à jour.');
                 commitElement.innerHTML = '<span class="loading">Informations non disponibles</span>';
             }
-        }
-        
-        function disableCommandButtons(disabled) {
-            const buttons = document.querySelectorAll('.cmd-button');
-            buttons.forEach(button => {
-                button.disabled = disabled;
-            });
         }
         
         // Initialisation au chargement de la page
@@ -442,33 +383,6 @@
                     }
                 });
             });
-        }
-
-        async function updateCpuInfo() {
-            try {
-                const result = await requestCommand('cpu_temp');
-                 console.log('Données CPU reçues:', result); // Ajout d'un log pour vérifier les données
-                const { cpuUsage, temperature } = result;
-                cpuTempDisplay.textContent = `CPU: ${cpuUsage}% | Température: ${temperature}`;
-            } catch (error) {
-                console.error('Erreur:', error);
-                addStatusMessage(`❌ Erreur: ${error.message}`, 'error');
-            }
-        }
-
-        async function updateStatus() {
-            try {
-                const result = await requestCommand('check_status');
-                const statusPanel = document.getElementById('statusPanel');
-                const statusMessage = document.createElement('div');
-                statusMessage.className = 'status-message status-info';
-                statusMessage.textContent = `Statut: ${JSON.stringify(result, null, 2)}`;
-                statusPanel.appendChild(statusMessage);
-                statusPanel.scrollTop = statusPanel.scrollHeight;
-            } catch (error) {
-                console.error('Erreur:', error);
-                addStatusMessage(`❌ Erreur: ${error.message}`, 'error');
-            }
         }
     </script>
 </body>

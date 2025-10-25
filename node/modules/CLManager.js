@@ -106,7 +106,13 @@ class CLManager {
   // Git pull
   async _gitPull() {
     return new Promise((resolve, reject) => {
-      const gitProcess = exec('git pull', { 
+      const commands = [
+        'rw', // Passer en mode lecture-écriture
+        'git pull',
+        'ro'  // Revenir en mode readonly
+      ];
+
+      const gitProcess = exec(commands.join(' && '), {
         cwd: this.projectRoot,
         timeout: 30000 // 30 secondes max
       }, (error, stdout, stderr) => {
@@ -114,10 +120,10 @@ class CLManager {
           reject(new Error(`Git pull failed: ${error.message}`));
           return;
         }
-        
+
         const output = stdout + stderr;
         console.log('Git pull output:', output);
-        
+
         resolve({
           success: true,
           output: output.trim(),
@@ -292,21 +298,32 @@ class CLManager {
         const lines = stdout.split('\n');
         console.log('Sortie de la commande CPU/température:', lines);
 
-        // Extraire les valeurs pour `us` et `sy`
-        const cpuLine = lines[0];
-        const cpuUsageMatch = cpuLine?.match(/([\d.]+)\s+us,\s+([\d.]+)\s+sy/);
-        const userTime = cpuUsageMatch ? parseFloat(cpuUsageMatch[1]) : 0;
-        const systemTime = cpuUsageMatch ? parseFloat(cpuUsageMatch[2]) : 0;
-        const totalCpuUsage = userTime + systemTime;
+        try {
+          // Extraire les valeurs pour `us` et `sy`
+          const cpuLine = lines[0];
+          const cpuUsageMatch = cpuLine.match(/([\d.]+)\s+us,\s+([\d.]+)\s+sy/);
+          if (!cpuUsageMatch) {
+            throw new Error('Impossible d\'extraire l\'utilisation CPU');
+          }
+          const userTime = parseFloat(cpuUsageMatch[1]);
+          const systemTime = parseFloat(cpuUsageMatch[2]);
+          const totalCpuUsage = userTime + systemTime;
 
-        // Extraire la température
-        const temperatureMatch = lines[1]?.match(/temp=([\d.]+)/);
-        const temperature = temperatureMatch ? `${temperatureMatch[1]}°C` : 'N/A';
+          // Extraire la température
+          const temperatureLine = lines[1];
+          const temperatureMatch = temperatureLine.match(/temp=([\d.]+)'C/);
+          if (!temperatureMatch) {
+            throw new Error('Impossible d\'extraire la température');
+          }
+          const temperature = parseFloat(temperatureMatch[1]);
 
-        resolve({
-          cpuUsage: totalCpuUsage.toFixed(1), // Utilisation totale du CPU
-          temperature
-        });
+          resolve({
+            cpuUsage: totalCpuUsage.toFixed(1), // Utilisation totale du CPU
+            temperature: `${temperature.toFixed(1)}°C`
+          });
+        } catch (parseError) {
+          reject(new Error(`Erreur lors de l'analyse des données: ${parseError.message}`));
+        }
       });
     });
   }

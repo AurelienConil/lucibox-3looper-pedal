@@ -4,6 +4,9 @@ const { Server } = require('socket.io');
 const { exec } = require('child_process');
 const path = require('path');
 
+// Intégration avec CLManager
+const CLManager = require('./CLManager');
+
 class WebManager {
   constructor(options = {}) {
     this.app = express();
@@ -13,6 +16,7 @@ class WebManager {
     this.messageCallback = null;
     this.autoOpenBrowser = options.autoOpenBrowser || false;
     this.htmlFileName = options.htmlFileName || 'index.html';
+    this.clManager = new CLManager(); // Initialiser CLManager
   }
 
   // Démarre le serveur web et Socket.IO
@@ -54,10 +58,30 @@ class WebManager {
         }
       });
 
-      // Écouter les événements des boutons
-      socket.on('command_request', (data) => {
-        if (this.messageCallback) {
-          this.messageCallback('command_request', data, socket.id);
+      // Écouter les demandes de commande
+      socket.on('command_request', async (data) => {
+        const { command, params } = data;
+        console.log(`Commande reçue: ${command} avec paramètres:`, params);
+
+        try {
+          // Déléguer la commande à CLManager
+          const result = await this.clManager.executeCommand(command, params);
+
+          // Émettre une réponse de succès
+          socket.emit('command_response', {
+            command,
+            success: true,
+            result
+          });
+        } catch (error) {
+          console.error(`Erreur lors du traitement de la commande ${command}:`, error);
+
+          // Émettre une réponse d'erreur
+          socket.emit('command_response', {
+            command,
+            success: false,
+            message: error.message
+          });
         }
       });
 
