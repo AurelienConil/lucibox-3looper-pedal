@@ -300,6 +300,7 @@
         }
 
         async function updateCpuInfo() {
+            if (!autoUpdateCheckbox.checked) return;
             try {
                 const { cpuUsage, temperature } = await executeCommand('cpu_temp');
                 cpuTempDisplay.textContent = `CPU: ${cpuUsage}% | Température: ${temperature}°C`;
@@ -321,7 +322,35 @@
             }
         }
 
-        setInterval(updateCpuInfo, 2000);
+        let cpuInterval = null;
+        function startCpuInterval() {
+            if (!cpuInterval) {
+                cpuInterval = setInterval(updateCpuInfo, 2000);
+            }
+        }
+        function stopCpuInterval() {
+            if (cpuInterval) {
+                clearInterval(cpuInterval);
+                cpuInterval = null;
+            }
+        }
+
+        autoUpdateCheckbox.addEventListener('change', function() {
+            if (autoUpdateCheckbox.checked) {
+                startCpuInterval();
+                updateCpuInfo();
+            } else {
+                stopCpuInterval();
+                cpuTempDisplay.textContent = 'Mise à jour désactivée';
+            }
+        });
+
+        if (autoUpdateCheckbox.checked) {
+            startCpuInterval();
+            updateCpuInfo();
+        } else {
+            cpuTempDisplay.textContent = 'Mise à jour désactivée';
+        }
 
         function refreshCommitInfo() {
             const commitElement = document.getElementById('currentCommit');
