@@ -213,7 +213,7 @@
                 <button class="cmd-button danger" onclick="executeCommand('poweroff')">
                     🔌 Shutdown
                 </button>
-                <button class="cmd-button system" onclick="executeCommand('check_status')">
+                <button class="cmd-button system" onclick="updateStatus()">
                     📊 Check Status
                 </button>
             </div>
@@ -309,6 +309,7 @@
         async function updateStatus() {
             try {
                 const status = await executeCommand('check_status');
+                console.log('Statut reçu:', status);
                 const statusMessage = document.createElement('div');
                 statusMessage.className = 'status-message status-info';
                 statusMessage.textContent = `Statut: ${JSON.stringify(status, null, 2)}`;
