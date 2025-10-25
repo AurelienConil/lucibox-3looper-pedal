@@ -229,6 +229,20 @@
                 <div class="status-message status-info">Système prêt...</div>
             </div>
         </div>
+        
+        <!-- Section CPU et Température -->
+        <div class="section">
+            <h2>🌡️ CPU et Température</h2>
+            <div>
+                <label>
+                    <input type="checkbox" id="autoUpdate" checked>
+                    Mise à jour automatique (toutes les 2 secondes)
+                </label>
+            </div>
+            <div id="cpuTempDisplay" style="font-size: 2em; text-align: center; margin-top: 20px;">
+                Chargement des données...
+            </div>
+        </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
@@ -239,6 +253,8 @@
         // Éléments DOM
         const statusPanel = document.getElementById('statusPanel');
         const connectionStatus = document.getElementById('connectionStatus');
+        const autoUpdateCheckbox = document.getElementById('autoUpdate');
+        const cpuTempDisplay = document.getElementById('cpuTempDisplay');
         
         // Fonction pour ajouter un message dans le panel de status
         function addStatusMessage(message, type = 'info') {
@@ -280,6 +296,7 @@
         
         // Réception des status de commandes
         socket.on('command_status', (data) => {
+            console.log('Message reçu via command_status:', data);
             handleCommandStatus(data);
         });
         
@@ -287,6 +304,24 @@
         socket.on('error', (error) => {
             addStatusMessage(`Erreur: ${error}`, 'error');
         });
+        
+        // Fonction pour récupérer les données CPU et Température
+        function fetchCpuAndTemp() {
+            if (!autoUpdateCheckbox.checked) return;
+
+            socket.emit('command_request', {
+                command: 'cpu_temp'
+            });
+        }
+
+        // Réception des données CPU et Température
+        socket.on('cpu_temp_data', (data) => {
+            const { cpuUsage, temperature } = data;
+            cpuTempDisplay.textContent = `CPU: ${cpuUsage}% | Température: ${temperature}°C`;
+        });
+
+        // Intervalle pour mise à jour automatique
+        setInterval(fetchCpuAndTemp, 2000);
         
         function handleCommandStatus(data) {
             const { type, command, message, error, result } = data;
@@ -305,7 +340,18 @@
                     
                     // Mettre à jour l'affichage du commit si c'est une commande git_commit
                     if (command === 'git_commit' && result) {
+                        console.log('Mise à jour du commit avec les données reçues:', result);
                         updateCommitDisplay(result);
+                    }
+                    
+                    // Afficher les résultats de check_status
+                    if (command === 'check_status' && result) {
+                        const statusPanel = document.getElementById('statusPanel');
+                        const statusMessage = document.createElement('div');
+                        statusMessage.className = 'status-message status-info';
+                        statusMessage.textContent = `Statut: ${JSON.stringify(result, null, 2)}`;
+                        statusPanel.appendChild(statusMessage);
+                        statusPanel.scrollTop = statusPanel.scrollHeight;
                     }
                     
                     disableCommandButtons(false);
@@ -353,8 +399,10 @@
         function updateCommitDisplay(commitInfo) {
             const commitElement = document.getElementById('currentCommit');
             if (commitInfo && commitInfo.commit) {
+                console.log('Mise à jour de la page avec le commit:', commitInfo.commit);
                 commitElement.innerHTML = `<span class="commit-text">${commitInfo.commit}</span>`;
             } else {
+                console.log('Aucune information de commit disponible pour mise à jour.');
                 commitElement.innerHTML = '<span class="loading">Informations non disponibles</span>';
             }
         }
@@ -377,6 +425,50 @@
                 }
             }, 1000);
         });
+        
+        async function requestCommand(command, params = {}) {
+            return new Promise((resolve, reject) => {
+                // Émettre la commande
+                socket.emit('command_request', { command, params });
+
+                // Écouter la réponse
+                socket.on('command_response', (data) => {
+                    if (data.command === command) {
+                        if (data.success) {
+                            resolve(data.result);
+                        } else {
+                            reject(new Error(data.message || `Erreur lors de l'exécution de ${command}`));
+                        }
+                    }
+                });
+            });
+        }
+
+        async function updateCpuInfo() {
+            try {
+                const result = await requestCommand('cpu_temp');
+                const { cpuUsage, temperature } = result;
+                cpuTempDisplay.textContent = `CPU: ${cpuUsage}% | Température: ${temperature}`;
+            } catch (error) {
+                console.error('Erreur:', error);
+                addStatusMessage(`❌ Erreur: ${error.message}`, 'error');
+            }
+        }
+
+        async function updateStatus() {
+            try {
+                const result = await requestCommand('check_status');
+                const statusPanel = document.getElementById('statusPanel');
+                const statusMessage = document.createElement('div');
+                statusMessage.className = 'status-message status-info';
+                statusMessage.textContent = `Statut: ${JSON.stringify(result, null, 2)}`;
+                statusPanel.appendChild(statusMessage);
+                statusPanel.scrollTop = statusPanel.scrollHeight;
+            } catch (error) {
+                console.error('Erreur:', error);
+                addStatusMessage(`❌ Erreur: ${error.message}`, 'error');
+            }
+        }
     </script>
 </body>
 </html>

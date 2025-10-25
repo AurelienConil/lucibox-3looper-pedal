@@ -10,7 +10,8 @@ class CLManager {
       'poweroff',
       'reboot',
       'update_system',
-      'check_status'
+      'check_status',
+      'cpu_temp'
   ];
     
   this.projectRoot = options.projectRoot || process.cwd();
@@ -93,6 +94,9 @@ class CLManager {
         
       case 'check_status':
         return await this._checkStatus();
+        
+      case 'cpu_temp':
+        return await this._cpuTemp();
         
       default:
         throw new Error(`Commande inconnue: ${commandName}`);
@@ -238,14 +242,21 @@ class CLManager {
         projectRoot: this.projectRoot,
         timestamp: new Date().toISOString()
       };
-      
+
       // Ajouter des infos système si on est sur Linux
       if (process.platform === 'linux') {
         exec('uptime && df -h / && free -h', (error, stdout) => {
           if (!error) {
             status.systemInfo = stdout;
           }
-          
+
+          this.sendMessage('command_completed', {
+            command: 'check_status',
+            success: true,
+            result: status,
+            message: 'Statut système récupéré'
+          });
+
           resolve({
             success: true,
             status,
@@ -253,12 +264,40 @@ class CLManager {
           });
         });
       } else {
+        this.sendMessage('command_completed', {
+          command: 'check_status',
+          success: true,
+          result: status,
+          message: 'Statut système récupéré'
+        });
+
         resolve({
           success: true,
           status,
           message: 'Statut système récupéré'
         });
       }
+    });
+  }
+
+  // Récupération de la température CPU
+  async _cpuTemp() {
+    return new Promise((resolve, reject) => {
+      exec("top -bn1 | grep 'Cpu(s)' && vcgencmd measure_temp", (error, stdout) => {
+        if (error) {
+          reject(new Error('Erreur lors de la récupération des données CPU/température'));
+          return;
+        }
+
+        const lines = stdout.split('\n');
+        const cpuUsageMatch = lines[0]?.match(/([0-9]+\.[0-9]+)%/);
+        const temperatureMatch = lines[1]?.match(/temp=([0-9]+\.[0-9]+)/);
+
+        resolve({
+          cpuUsage: cpuUsageMatch ? parseFloat(cpuUsageMatch[1]) : 'N/A',
+          temperature: temperatureMatch ? `${temperatureMatch[1]}°C` : 'N/A'
+        });
+      });
     });
   }
 
@@ -290,7 +329,8 @@ class CLManager {
       'poweroff': 'Éteint le Raspberry Pi',
       'reboot': 'Redémarre le Raspberry Pi',
       'update_system': 'Met à jour le système (apt)',
-      'check_status': 'Vérifie le statut du système'
+      'check_status': 'Vérifie le statut du système',
+      'cpu_temp': 'Vérifie la température du CPU'
     };
     
     return descriptions[command] || 'Commande personnalisée';

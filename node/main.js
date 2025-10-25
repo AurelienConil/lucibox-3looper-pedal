@@ -25,7 +25,8 @@ class LuciboxBridge {
         'poweroff', 
         'reboot',
         'update_system',
-        'check_status'
+        'check_status',
+        'cpu_temp'
       ]
     });
     
