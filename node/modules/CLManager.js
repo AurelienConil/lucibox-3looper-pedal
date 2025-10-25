@@ -290,12 +290,22 @@ class CLManager {
         }
 
         const lines = stdout.split('\n');
-        const cpuUsageMatch = lines[0]?.match(/([0-9]+\.[0-9]+)%/);
-        const temperatureMatch = lines[1]?.match(/temp=([0-9]+\.[0-9]+)/);
+        console.log('Sortie de la commande CPU/température:', lines);
+
+        // Extraire les valeurs pour `us` et `sy`
+        const cpuLine = lines[0];
+        const cpuUsageMatch = cpuLine?.match(/([\d.]+)\s+us,\s+([\d.]+)\s+sy/);
+        const userTime = cpuUsageMatch ? parseFloat(cpuUsageMatch[1]) : 0;
+        const systemTime = cpuUsageMatch ? parseFloat(cpuUsageMatch[2]) : 0;
+        const totalCpuUsage = userTime + systemTime;
+
+        // Extraire la température
+        const temperatureMatch = lines[1]?.match(/temp=([\d.]+)/);
+        const temperature = temperatureMatch ? `${temperatureMatch[1]}°C` : 'N/A';
 
         resolve({
-          cpuUsage: cpuUsageMatch ? parseFloat(cpuUsageMatch[1]) : 'N/A',
-          temperature: temperatureMatch ? `${temperatureMatch[1]}°C` : 'N/A'
+          cpuUsage: totalCpuUsage.toFixed(1), // Utilisation totale du CPU
+          temperature
         });
       });
     });
