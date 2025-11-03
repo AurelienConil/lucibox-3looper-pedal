@@ -17,10 +17,10 @@ int values[MAX_VALUES];
 
 // Instances des contrôleurs
 Potentiometer potars[] = {
-  Potentiometer(A0, "/lucibox/octaver/drywet"),
-  Potentiometer(A1, "/lucibox/delay/feedback"),
-  Potentiometer(A2, "/lucibox/delay/drywet"),
-  Potentiometer(A3, "/lucibox/reverb/drywet")
+  Potentiometer(A0, "/lucibox/potar1"),
+  Potentiometer(A1, "/lucibox/potar2"),
+  Potentiometer(A2, "/lucibox/potar3"),
+  Potentiometer(A3, "/lucibox/potar4")
 };
 
 Button buttons[] = {

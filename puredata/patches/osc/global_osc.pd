@@ -14,6 +14,7 @@
 #X obj 222 360 outlet;
 #X obj 146 102 route lucibox;
 #X obj 147 133 s osc_in;
+#X obj 249 169 print;
 #X connect 0 0 3 0;
 #X connect 1 0 0 0;
 #X connect 1 1 4 0;
@@ -28,3 +29,4 @@
 #X connect 9 0 10 0;
 #X connect 10 0 2 0;
 #X connect 13 0 14 0;
+#X connect 13 0 15 0;
