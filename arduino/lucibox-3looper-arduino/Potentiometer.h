@@ -4,7 +4,7 @@
 #include "Arduino.h"
 
 #ifndef ANALOG_THRESH
-#define ANALOG_THRESH 3
+#define ANALOG_THRESH 5
 #endif
 
 struct Potentiometer {

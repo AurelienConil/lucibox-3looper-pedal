@@ -4,6 +4,7 @@ const MIDIManager = require('./modules/MIDIManager');
 const WebManager = require('./modules/WebManager');
 const PdManager = require('./modules/PdManager');
 const CLManager = require('./modules/CLManager');
+const logger = require('./modules/Logger');
 
 class LuciboxBridge {
   constructor() {
@@ -38,7 +39,7 @@ class LuciboxBridge {
     // Arduino -> OSC
     this.arduinoManager.onMessage((message) => {
       // TODO: Parser et router vers OSC
-      console.log('Arduino message received:', message);
+      logger.verbose('Arduino message received:', message);
       if (message.startsWith('/lucibox/')) {
         // Reformater pour OSC: "/lucibox/led/set 4 2"
         const parts = message.split(' ');
@@ -48,7 +49,7 @@ class LuciboxBridge {
           
           if (!isNaN(value) && address.startsWith('/')) {
             this.oscManager.sendMessage(address, value);
-            console.log(`OSC -> ${address} ${value}`);
+            logger.verbose(`OSC -> ${address} ${value}`);
           }
         }
       
@@ -58,12 +59,12 @@ class LuciboxBridge {
     // MIDI -> OSC
     this.midiManager.onMessage((message) => {
       // TODO: Convertir MIDI en OSC et router
-      console.log('MIDI message received:', message);
+      logger.verbose('MIDI message received:', message);
     });
 
        // CLManager -> Web (pour notifier l'interface des résultats de commandes)
     this.clManager.onMessage((type, data) => {
-      console.log(`CLManager event: ${type}`, data);
+      logger.verbose(`CLManager event: ${type}`, data);
       
       // Envoyer les notifications vers l'interface web
       this.webManager.broadcast('command_status', {
@@ -79,26 +80,26 @@ class LuciboxBridge {
 
     // Web -> OSC/Audio/CLManager
     this.webManager.onMessage((eventType, data, clientId) => {
-      console.log(`Reçu ${eventType} de ${clientId}:`, data);
+      logger.verbose(`Reçu ${eventType} de ${clientId}:`, data);
       
       switch(eventType) {
         case 'slider_change':
           // Traiter le changement de slider (logique existante)
-          console.log(`Slider ${data.slider} changé à ${data.value}`);
+          logger.verbose(`Slider ${data.slider} changé à ${data.value}`);
           if (data.address && data.value !== undefined) {
             this.oscManager.sendMessage(data.address, data.value);
-            console.log(`OSC -> ${data.address} ${data.value}`);
+            logger.verbose(`OSC -> ${data.address} ${data.value}`);
           }
           break;
           
         case 'button_click':
           // Traiter le clic de bouton (logique existante)
-          console.log(`Bouton ${data.button} cliqué`);
+          logger.verbose(`Bouton ${data.button} cliqué`);
           break;
           
         case 'command_request':
           // Nouvelle gestion pour les commandes système
-          console.log(`Requête de commande reçue: ${data.command} avec params`, data.params);
+          logger.verbose(`Requête de commande reçue: ${data.command} avec params`, data.params);
           this.handleCommandRequest(data, clientId);
           break;
       }
@@ -116,7 +117,7 @@ class LuciboxBridge {
               for (const val of values) {
                 message += ` ${val}`;
               }
-              console.log(`OSC <- ${message}`);
+              logger.verbose(`OSC <- ${message}`);
               this.arduinoManager.sendCommand(message)
             }
       }
@@ -128,7 +129,7 @@ class LuciboxBridge {
     const { command, params = {} } = data;
     
     try {
-      console.log(`Exécution de la commande "${command}" demandée par ${clientId}`);
+      logger.info(`Exécution de la commande "${command}" demandée par ${clientId}`);
       
       // Vérifier si la commande existe
       const availableCommands = this.clManager.getAvailableCommands();
@@ -157,7 +158,7 @@ class LuciboxBridge {
       });
       
     } catch (error) {
-      console.error(`Erreur lors de l'exécution de ${command}:`, error.message);
+      logger.error(`Erreur lors de l'exécution de ${command}:`, error.message);
       
       // Envoyer l'erreur au client via Socket.IO au format attendu
       this.webManager.sendToClient(clientId, 'command_response', {
@@ -170,9 +171,9 @@ class LuciboxBridge {
 
   // Démarre tous les services
   async start() {
-    console.log("//////////////////////");
-    console.log("BRIDGE ARDUINO OSC");
-    console.log("//////////////////////");
+    logger.info("//////////////////////");
+    logger.info("BRIDGE ARDUINO OSC");
+    logger.info("//////////////////////");
 
     try {
       // Initialisation des modules
@@ -185,20 +186,20 @@ class LuciboxBridge {
       this.oscManager.startListening();
 
       // Le CLManager n'a pas besoin d'initialisation spéciale
-      // console.log('CLManager ready with commands:', 
+      // logger.verbose('CLManager ready with commands:', 
       //   this.clManager.getAvailableCommands().map(cmd => cmd.name).join(', ')
       // );
       
-      console.log('All modules started successfully');
+      logger.info('All modules started successfully');
       
     } catch (error) {
-      console.error('Error starting bridge:', error);
+      logger.error('Error starting bridge:', error);
     }
   }
 
   // Arrête tous les services
   stop() {
-    console.log('\nStopping all modules...');
+    logger.info('\nStopping all modules...');
     
     this.oscManager.stop();
     this.arduinoManager.disconnect();
@@ -206,8 +207,21 @@ class LuciboxBridge {
     //this.webManager.stop();
     //this.clManager.stop();
     
-    console.log('Bridge stopped');
+    logger.info('Bridge stopped');
   }
+}
+
+// Analyser les arguments de ligne de commande
+const args = process.argv.slice(2);
+const isVerbose = args.includes('--verbose') || args.includes('-v');
+
+// Configurer le logger
+logger.setVerbose(isVerbose);
+
+if (isVerbose) {
+  logger.info('Mode verbose activé');
+} else {
+  logger.info('Mode production (utilisez --verbose pour plus de détails)');
 }
 
 // Démarrage du programme

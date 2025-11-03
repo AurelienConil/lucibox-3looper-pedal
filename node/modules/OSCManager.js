@@ -1,4 +1,5 @@
 const osc = require('node-osc');
+const logger = require('./Logger');
 
 class OSCManager {
   constructor() {
@@ -17,12 +18,12 @@ class OSCManager {
       // Initialiser le serveur OSC pour recevoir des messages
       this.oscServer = new osc.Server(serverPort);
       
-      console.log(`OSC Client initialized: ${clientHost}:${clientPort}`);
-      console.log(`OSC Server initialized on port: ${serverPort}`);
+      logger.info(`OSC Client initialized: ${clientHost}:${clientPort}`);
+      logger.info(`OSC Server initialized on port: ${serverPort}`);
       
       return true;
     } catch (error) {
-      console.error('Error initializing OSC:', error.message);
+      logger.error('Error initializing OSC:', error.message);
       return false;
     }
   }
@@ -30,7 +31,7 @@ class OSCManager {
   // Envoie un message OSC
   sendMessage(address, ...values) {
     if (!this.oscClient) {
-      console.error('OSC Client not initialized');
+      logger.error('OSC Client not initialized');
       return false;
     }
 
@@ -43,10 +44,10 @@ class OSCManager {
         this.oscClient.send(address, ...values);
       }
       
-      console.log(`OSC -> ${address} ${values.join(' ')}`);
+      logger.verbose(`OSC -> ${address} ${values.join(' ')}`);
       return true;
     } catch (error) {
-      console.error('Error sending OSC message:', error.message);
+      logger.error('Error sending OSC message:', error.message);
       return false;
     }
   }
@@ -56,19 +57,19 @@ class OSCManager {
     if (typeof handler === 'function') {
       this.messageHandlers.push(handler);
     } else {
-      console.error('Message handler must be a function');
+      logger.error('Message handler must be a function');
     }
   }
 
   // Démarre l'écoute des messages OSC
   startListening() {
     if (!this.oscServer) {
-      console.error('OSC Server not initialized');
+      logger.error('OSC Server not initialized');
       return false;
     }
 
     if (this.isListening) {
-      console.log('OSC Server already listening');
+      logger.verbose('OSC Server already listening');
       return true;
     }
 
@@ -79,29 +80,29 @@ class OSCManager {
           const address = msg[0];
           const values = msg.slice(1);
           
-          console.log(`OSC <- ${address} ${values.join(' ')}`);
+          logger.verbose(`OSC <- ${address} ${values.join(' ')}`);
           
           // Appeler tous les handlers enregistrés
           this.messageHandlers.forEach(handler => {
             try {
               handler(address, ...values);
             } catch (error) {
-              console.error('Error in OSC message handler:', error.message);
+              logger.error('Error in OSC message handler:', error.message);
             }
           });
         }
       });
 
       this.oscServer.on('error', (error) => {
-        console.error('OSC Server error:', error.message);
+        logger.error('OSC Server error:', error.message);
       });
 
       this.isListening = true;
-      console.log('OSC Server listening for messages...');
+      logger.info('OSC Server listening for messages...');
       return true;
       
     } catch (error) {
-      console.error('Error starting OSC server:', error.message);
+      logger.error('Error starting OSC server:', error.message);
       return false;
     }
   }
@@ -112,7 +113,7 @@ class OSCManager {
       // Note: node-osc ne semble pas avoir de méthode close() standard
       // On peut au moins marquer comme non-listening
       this.isListening = false;
-      console.log('OSC Server stopped listening');
+      logger.verbose('OSC Server stopped listening');
     }
   }
 
@@ -125,7 +126,7 @@ class OSCManager {
     this.oscServer = null;
     this.messageHandlers = [];
     
-    console.log('OSC Manager stopped');
+    logger.info('OSC Manager stopped');
   }
 
   // Retourne le statut de l'OSC Manager

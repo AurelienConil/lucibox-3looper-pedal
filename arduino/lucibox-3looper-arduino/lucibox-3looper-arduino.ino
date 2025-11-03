@@ -101,7 +101,7 @@ void loop() {
   // Gestion des messages OSC entrants pour LEDs
   handleIncomingOSC();
 
-  if( !serialHandshake && (millis() - startTime) < timeout ) {
+  if( !serialHandshake && ((millis() - startTime) < timeout )) {
     // Attente de la connexion série avec effet de "fader"
       // Calcul du pourcentage en fonction du temps écoulé
       int percentage = map(millis() - startTime, 0, timeout, 0, 100);

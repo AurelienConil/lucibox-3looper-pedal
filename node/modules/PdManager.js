@@ -2,6 +2,8 @@
 // modules/audioManager.js
 // ========================================
 
+const logger = require('./Logger');
+
 class PdManager {
   constructor() {
     this.audioProcess = null;
@@ -13,21 +15,21 @@ class PdManager {
     // TODO: Lancer le processus audio avec child_process
     // TODO: Gérer stdout/stderr
     // TODO: Gérer les événements du processus
-    console.log(`Starting audio program: ${programPath}`);
+    logger.info(`Starting audio program: ${programPath}`);
     this.isRunning = true;
   }
 
   // Arrête le programme audio
   stop() {
     // TODO: Terminer le processus audio
-    console.log('Stopping audio program');
+    logger.info('Stopping audio program');
     this.isRunning = false;
   }
 
   // Redémarre le programme audio
   restart(programPath, args = []) {
     // TODO: Arrêter puis relancer le programme
-    console.log('Restarting audio program');
+    logger.info('Restarting audio program');
     this.stop();
     setTimeout(() => this.start(programPath, args), 1000);
   }

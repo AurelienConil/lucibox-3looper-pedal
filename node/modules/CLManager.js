@@ -1,6 +1,7 @@
 const { exec, spawn } = require('child_process');
 const path = require('path');
 const fs = require('fs');
+const logger = require('./Logger');
 
 class CLManager {
   constructor(options = {}) {
@@ -18,7 +19,7 @@ class CLManager {
   this.messageCallback = null;
   this.isExecuting = false;
     
-  console.log('CLManager initialized with allowed commands:', this.allowedCommands);
+  logger.verbose('CLManager initialized with allowed commands:', this.allowedCommands);
   }
 
   // Callback pour recevoir les messages
@@ -46,7 +47,7 @@ class CLManager {
     this.isExecuting = true;
     
     try {
-      console.log(`Exécution de la commande: ${commandName}`);
+      logger.verbose(`Exécution de la commande: ${commandName}`);
       this.sendMessage('command_started', { command: commandName, params });
       
       const result = await this._executeSpecificCommand(commandName, params);
@@ -60,7 +61,7 @@ class CLManager {
       return result;
       
     } catch (error) {
-      console.error(`Erreur lors de l'exécution de ${commandName}:`, error.message);
+      logger.error(`Erreur lors de l'exécution de ${commandName}:`, error.message);
       
       this.sendMessage('command_error', { 
         command: commandName, 
@@ -122,7 +123,7 @@ class CLManager {
         }
 
         const output = stdout + stderr;
-        console.log('Git pull output:', output);
+        logger.verbose('Git pull output:', output);
 
         resolve({
           success: true,
@@ -146,7 +147,7 @@ class CLManager {
         }
         
         const commitInfo = stdout.trim();
-        console.log('Git commit info:', commitInfo);
+        logger.verbose('Git commit info:', commitInfo);
         
         resolve({
           success: true,
@@ -168,7 +169,7 @@ class CLManager {
         return;
       }
       
-      console.log('Arrêt du système programmé dans 5 secondes...');
+      logger.info('Arrêt du système programmé dans 5 secondes...');
       
       setTimeout(() => {
         exec('sudo poweroff', (error) => {
@@ -193,7 +194,7 @@ class CLManager {
         return;
       }
       
-      console.log('Redémarrage du système programmé dans 5 secondes...');
+      logger.info('Redémarrage du système programmé dans 5 secondes...');
       
       setTimeout(() => {
         exec('sudo reboot', (error) => {
@@ -218,7 +219,7 @@ class CLManager {
         return;
       }
       
-      console.log('Mise à jour du système...');
+      logger.info('Mise à jour du système...');
       
       const updateProcess = exec('sudo apt update && sudo apt upgrade -y', {
         timeout: 300000 // 5 minutes max
@@ -296,7 +297,7 @@ class CLManager {
         }
 
         const lines = stdout.split('\n');
-        console.log('Sortie de la commande CPU/température:', lines);
+        logger.verbose('Sortie de la commande CPU/température:', lines);
 
         try {
           // Extraire les valeurs pour `us` et `sy`
@@ -337,7 +338,7 @@ class CLManager {
     this.allowedCommands.push(name);
     this[`_${name}`] = handler;
     
-    console.log(`Commande personnalisée ajoutée: ${name}`);
+    logger.verbose(`Commande personnalisée ajoutée: ${name}`);
   }
 
   // Obtenir la liste des commandes disponibles
@@ -365,7 +366,7 @@ class CLManager {
 
   // Arrêt du module
   stop() {
-    console.log('CLManager stopped');
+    logger.info('CLManager stopped');
   }
 }
 

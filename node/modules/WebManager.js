@@ -3,6 +3,7 @@ const { createServer } = require('http');
 const { Server } = require('socket.io');
 const { exec } = require('child_process');
 const path = require('path');
+const logger = require('./Logger');
 
 class WebManager {
   constructor(options = {}) {
@@ -38,7 +39,7 @@ class WebManager {
 
     // Gérer les connexions Socket.IO
     this.io.on('connection', (socket) => {
-      console.log(`Client connecté: ${socket.id}`);
+      logger.verbose(`Client connecté: ${socket.id}`);
       
       // Ajouter le client à la liste
       this.clients.set(socket.id, {
@@ -57,7 +58,7 @@ class WebManager {
       // Écouter les demandes de commande
       socket.on('command_request', async (data) => {
         const { command, params } = data;
-        console.log(`Commande reçue: ${command} avec paramètres:`, params);
+        logger.verbose(`Commande reçue: ${command} avec paramètres:`, params);
 
         // Déléguer la commande via le callback vers le main
         if (this.messageCallback) {
@@ -67,7 +68,7 @@ class WebManager {
             clientId: socket.id
           }, socket.id);
         } else {
-          console.error('Aucun callback configuré pour les commandes');
+          logger.error('Aucun callback configuré pour les commandes');
           socket.emit('command_response', {
             command,
             success: false,
@@ -78,7 +79,7 @@ class WebManager {
 
       // Gérer la déconnexion
       socket.on('disconnect', (reason) => {
-        console.log(`Client déconnecté: ${socket.id} (${reason})`);
+        logger.verbose(`Client déconnecté: ${socket.id} (${reason})`);
         this.clients.delete(socket.id);
       });
 
@@ -90,8 +91,8 @@ class WebManager {
 
     // Démarrer le serveur
     this.server.listen(port, '0.0.0.0', () => {
-      console.log(`Web server started on port ${port}`);
-      console.log(`Socket.IO server ready`);
+      logger.info(`Web server started on port ${port}`);
+      logger.info(`Socket.IO server ready`);
       
       // Ouvrir le navigateur si demandé
       if (this.autoOpenBrowser) {
@@ -124,10 +125,10 @@ class WebManager {
     
     exec(command, (error) => {
       if (error) {
-        console.error(`Erreur lors de l'ouverture du navigateur: ${error}`);
-        console.log(`Vous pouvez ouvrir manuellement: ${htmlPath}`);
+        logger.error(`Erreur lors de l'ouverture du navigateur: ${error}`);
+        logger.info(`Vous pouvez ouvrir manuellement: ${htmlPath}`);
       } else {
-        console.log(`Navigateur ouvert: ${htmlPath}`);
+        logger.verbose(`Navigateur ouvert: ${htmlPath}`);
       }
     });
   }
@@ -136,7 +137,7 @@ class WebManager {
   broadcast(message) {
     if (this.io) {
       this.io.emit('server_message', { message: message });
-      console.log(`Broadcasting to ${this.clients.size} clients: ${message}`);
+      logger.verbose(`Broadcasting to ${this.clients.size} clients: ${message}`);
     }
   }
 
@@ -144,7 +145,7 @@ class WebManager {
   broadcastNotification(text) {
     if (this.io) {
       this.io.emit('notification', { text: text });
-      console.log(`Broadcasting notification to ${this.clients.size} clients: ${text}`);
+      logger.verbose(`Broadcasting notification to ${this.clients.size} clients: ${text}`);
     }
   }
 
@@ -153,9 +154,9 @@ class WebManager {
     const client = this.clients.get(clientId);
     if (client && client.socket) {
       client.socket.emit(eventType, payload);
-      console.log(`Sending to client ${clientId}: ${eventType}`);
+      logger.verbose(`Sending to client ${clientId}: ${eventType}`);
     } else {
-      console.log(`Client ${clientId} not found`);
+      logger.verbose(`Client ${clientId} not found`);
     }
   }
 
@@ -164,7 +165,7 @@ class WebManager {
     const client = this.clients.get(clientId);
     if (client && client.socket) {
       client.socket.emit('notification', { text: text });
-      console.log(`Sending notification to client ${clientId}: ${text}`);
+      logger.verbose(`Sending notification to client ${clientId}: ${text}`);
     }
   }
 
@@ -187,12 +188,12 @@ class WebManager {
   stop() {
     if (this.server) {
       this.server.close(() => {
-        console.log('Web server stopped');
+        logger.info('Web server stopped');
       });
     }
     if (this.io) {
       this.io.close();
-      console.log('Socket.IO server stopped');
+      logger.info('Socket.IO server stopped');
     }
     this.clients.clear();
   }

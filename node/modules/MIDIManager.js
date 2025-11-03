@@ -1,3 +1,5 @@
+const logger = require('./Logger');
+
 class MIDIManager {
   constructor() {
     this.midiInput = null;
@@ -9,32 +11,32 @@ class MIDIManager {
   initialize() {
     // TODO: Lister les ports MIDI disponibles
     // TODO: Se connecter aux ports d'entrée et sortie
-    console.log('MIDI Manager initialized');
+    logger.info('MIDI Manager initialized');
   }
 
   // Liste les ports MIDI disponibles
   listPorts() {
     // TODO: Retourner la liste des ports MIDI
-    console.log('Listing MIDI ports...');
+    logger.verbose('Listing MIDI ports...');
     return [];
   }
 
   // Se connecte à un port MIDI d'entrée
   connectInput(portName) {
     // TODO: Connexion au port d'entrée
-    console.log(`Connected to MIDI input: ${portName}`);
+    logger.info(`Connected to MIDI input: ${portName}`);
   }
 
   // Se connecte à un port MIDI de sortie
   connectOutput(portName) {
     // TODO: Connexion au port de sortie
-    console.log(`Connected to MIDI output: ${portName}`);
+    logger.info(`Connected to MIDI output: ${portName}`);
   }
 
   // Envoie un message MIDI
   sendMessage(message) {
     // TODO: Envoyer message MIDI
-    console.log(`MIDI -> ${message}`);
+    logger.verbose(`MIDI -> ${message}`);
   }
 
   // Définit le callback pour les messages reçus
@@ -45,7 +47,7 @@ class MIDIManager {
   // Ferme les connexions MIDI
   disconnect() {
     // TODO: Fermer connexions MIDI
-    console.log('MIDI disconnected');
+    logger.info('MIDI disconnected');
   }
 }
 
