@@ -41,6 +41,20 @@ struct Potentiometer {
     Serial.println();
     lastSentValue = currentValue;
   }
+  
+  void sendCurrentValue() {
+    // Force la lecture et l'envoi de la valeur actuelle
+    currentValue = analogRead(pin);
+    if(currentValue < (ANALOG_THRESH + 1 )){
+      currentValue = 0; // Force to zéro when value is low.
+    }
+    int mappedValue = map(currentValue, 0, 1023, 0, 1000);
+    Serial.print(oscAddress);
+    Serial.print(" ");
+    Serial.print(mappedValue);
+    Serial.println();
+    lastSentValue = currentValue;
+  }
 };
 
 #endif

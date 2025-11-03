@@ -173,6 +173,11 @@ void parseOSCMessage(String message) {
   // -------------- CLEAR ------------------------
   else if(message.startsWith("/lucibox/led/strip/clear")) {
     // Valider le handshake spécifiquement sur la commande clear
+    LedStrip.clear();
+
+  // -------------- INIT ------------------------
+  else if(message.startsWith("/lucibox/init")) {
+    // Valider le handshake spécifiquement sur la commande init
     if(!serialHandshake) {
       serialHandshake = true;
       Serial.print("# Handshake validated at ");
@@ -184,10 +189,19 @@ void parseOSCMessage(String message) {
       Serial.println("# Fader stopped and cleared");
     }
     
-    Serial.print("# Clear pixels at ");
+    Serial.print("# Init system at ");
     Serial.print(millis());
     Serial.println("ms");
+    
+    // 1. Clear du ruban LED
     ledStrip.clear();
+    
+    // 2. Envoyer toutes les valeurs actuelles des potentiomètres
+    Serial.println("# Sending all potentiometer values");
+    for(int i = 0; i < NUM_POTARS; i++) {
+      potars[i].sendCurrentValue();
+    }
+    Serial.println("# Init completed");
   }
   // -------------- LOOPER  ------------------------
   else if(message.startsWith("/lucibox/led/strip/looper")) {  

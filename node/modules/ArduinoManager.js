@@ -51,10 +51,10 @@ class ArduinoManager {
 
           this.serialPort = serialPort; // Keep the port open
 
-          // Clear the LED strip 1 sec after connection
+          // Initialize the system after connection
           setTimeout(() => {
-            logger.verbose('Clearing LED strip...');
-            this.sendCommand("/lucibox/led/strip/clear 0 0");
+            logger.verbose('Initializing system...');
+            this.sendCommand("/lucibox/init 0 0");
           }, 2000);
 
           return;
