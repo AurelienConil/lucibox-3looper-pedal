@@ -13,6 +13,11 @@
 int valueCount = 0;
 int values[MAX_VALUES];
 
+// Serial handshake
+bool serialHandshake = false;
+unsigned long startTime;
+unsigned long timeout = 30000; // 30 secondes
+
 // Instance du NeoPixel (doit être globale pour être accessible par LedStrip)
 
 // Instances des contrôleurs
@@ -46,7 +51,18 @@ const int NUM_BUTTONS = sizeof(buttons) / sizeof(buttons[0]);
 
 void setup() {
   
-  // Initialisation des potentiomètres
+
+  
+  // Try to connect to serial . Display something until the serial is connected
+  Serial.begin(38400);
+  delay(5);
+
+
+  Serial.println("# LUCIBOX OSC Interface Ready");
+  //ledStrip.clear();
+
+
+    // Initialisation des potentiomètres
   for(int i = 0; i < NUM_POTARS; i++) {
     potars[i].init();
   }
@@ -55,26 +71,15 @@ void setup() {
   for(int i = 0; i < NUM_BUTTONS; i++) {
     buttons[i].init();
   }
-  
-  // Initialisation des LEDs
-  ledStrip.pixels.begin();
-  ledStrip.setFader(100,2);
-  
-  // Try to connect to serial . Display something until the serial is connected
-  Serial.begin(38400);
 
-    // Attente de la connexion série avec effet de "fader"
+    // Initialisation des LEDs
+  ledStrip.pixels.begin();
+  ledStrip.setFader(0,2);
+
   unsigned long startTime = millis();
   unsigned long timeout = 30000; // 30 secondes
-  while (!Serial && (millis() - startTime < timeout)) {
-    // Calcul du pourcentage en fonction du temps écoulé
-    int percentage = map(millis() - startTime, 0, timeout, 0, 100);
-    ledStrip.setFader(percentage, 2); // Affiche le pourcentage avec la fonction "fader"
-    delay(100); // Petit délai pour éviter une mise à jour trop rapide
-  }
 
-  Serial.println("# LUCIBOX OSC Interface Ready");
-  //ledStrip.clear();
+
 }
 
 void loop() {
@@ -95,15 +100,32 @@ void loop() {
   
   // Gestion des messages OSC entrants pour LEDs
   handleIncomingOSC();
+
+  if( !serialHandshake){
+    // Attente de la connexion série avec effet de "fader"
+
+      // Calcul du pourcentage en fonction du temps écoulé
+      int percentage = map(millis() - startTime, 0, timeout, 0, 100);
+      ledStrip.setFader(percentage, 2); // Affiche le pourcentage avec la fonction "fader"
+      delay(100); // Petit délai pour éviter une mise à jour trop rapide
+
+  }
+
   delay(5);
 }
 
 void handleIncomingOSC() {
   if(Serial.available() > 0) {
+
     String message = Serial.readStringUntil('\n');
     message.trim();
     
     if(message.length() > 0) {
+        if(!serialHandshake ){
+          serialHandshake = true;
+          Serial.println("# Handshake over");
+
+        }
       parseOSCMessage(message);
     }
   }

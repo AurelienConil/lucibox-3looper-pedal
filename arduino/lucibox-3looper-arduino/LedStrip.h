@@ -98,12 +98,12 @@ struct LedStrip {
   }
   
   void update() {
-    Serial.print("#led state=[");
+    // Serial.print("#led state=[");
     for(int i = 0; i < NUMPIXELS; i++) {
       setColorNeoPixel(i, ledStates[i]);
-      Serial.print(ledStates[i]);
+      //Serial.print(ledStates[i]);
     }
-    Serial.println("]");
+    //Serial.println("]");
     pixels.show();
   }
   

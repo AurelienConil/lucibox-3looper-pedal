@@ -62,6 +62,7 @@ class ArduinoManager {
           path: portPath,
           baudRate: 38400
         });
+
         
         const parser = testPort.pipe(new ReadlineParser({ delimiter: '\n' }));
         
