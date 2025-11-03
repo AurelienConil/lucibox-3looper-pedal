@@ -16,7 +16,7 @@ class ArduinoManager {
       const ports = await SerialPort.list();
       console.log(`Found ${ports.length} serial ports`);
       
-      for (const port of ports) {
+      for (const port of ports.reverse()) {
         console.log(`Testing ${port.path}...`);
         const isLucibox = await this.testPort(port.path);
         
