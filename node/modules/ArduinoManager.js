@@ -69,7 +69,7 @@ class ArduinoManager {
         parser.on('data', (data) => {
           console.log(`Received on ${portPath}: ${data.toString().trim()}`);
           const message = data.toString().trim();
-          if (message === '# LUCIBOX OSC Interface Ready') {
+          if (message.includes('LUCIBOX')) {
             cleanup();
             resolve(true);
           }
