@@ -4,7 +4,7 @@
 #include "Arduino.h"
 
 #ifndef ANALOG_THRESH
-#define ANALOG_THRESH 5
+#define ANALOG_THRESH 3
 #endif
 
 struct Potentiometer {
@@ -25,6 +25,9 @@ struct Potentiometer {
     int newValue = analogRead(pin);
     if (abs(newValue - currentValue) > ANALOG_THRESH) {
       currentValue = newValue;
+      if(newValue < (ANALOG_THRESH + 1 )){
+        currentValue = 0; // Force to zéro when value is low.
+      }
       return true;
     }
     return false;
