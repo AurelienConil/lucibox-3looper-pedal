@@ -62,7 +62,16 @@ void setup() {
   
   // Try to connect to serial . Display something until the serial is connected
   Serial.begin(38400);
-  int fader = 0;
+
+    // Attente de la connexion série avec effet de "fader"
+  unsigned long startTime = millis();
+  unsigned long timeout = 30000; // 30 secondes
+  while (!Serial && (millis() - startTime < timeout)) {
+    // Calcul du pourcentage en fonction du temps écoulé
+    int percentage = map(millis() - startTime, 0, timeout, 0, 100);
+    ledStrip.setFader(percentage, 2); // Affiche le pourcentage avec la fonction "fader"
+    delay(100); // Petit délai pour éviter une mise à jour trop rapide
+  }
 
   Serial.println("# LUCIBOX OSC Interface Ready");
   //ledStrip.clear();
