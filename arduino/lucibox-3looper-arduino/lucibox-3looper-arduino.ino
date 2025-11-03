@@ -101,14 +101,12 @@ void loop() {
   // Gestion des messages OSC entrants pour LEDs
   handleIncomingOSC();
 
-  if( !serialHandshake){
+  if( !serialHandshake && (millis() - startTime) < timeout ) {
     // Attente de la connexion série avec effet de "fader"
-
       // Calcul du pourcentage en fonction du temps écoulé
       int percentage = map(millis() - startTime, 0, timeout, 0, 100);
       ledStrip.setFader(percentage, 2); // Affiche le pourcentage avec la fonction "fader"
       delay(100); // Petit délai pour éviter une mise à jour trop rapide
-
   }
 
   delay(5);
