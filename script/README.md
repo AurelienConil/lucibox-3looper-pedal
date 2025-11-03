@@ -15,6 +15,7 @@ patch@patchbox(rw):~$ systemctl --user stop lucibox-node.service
 # Services journal
 
 journalctl --user-unit=lucibox-node.service
+journalctl --user-unit=lucibox-node.service --follow
 
  
 
