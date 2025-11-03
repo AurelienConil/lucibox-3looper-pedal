@@ -121,11 +121,6 @@ void handleIncomingOSC() {
     message.trim();
     
     if(message.length() > 0) {
-        if(!serialHandshake ){
-          serialHandshake = true;
-          Serial.println("# Handshake over");
-
-        }
       parseOSCMessage(message);
     }
   }
@@ -179,7 +174,21 @@ void parseOSCMessage(String message) {
   }
   // -------------- CLEAR ------------------------
   else if(message.startsWith("/lucibox/led/strip/clear")) {
-    Serial.println("# Clear pixels");
+    // Valider le handshake spécifiquement sur la commande clear
+    if(!serialHandshake) {
+      serialHandshake = true;
+      Serial.print("# Handshake validated at ");
+      Serial.print(millis());
+      Serial.println("ms");
+      
+      // Force clear immédiatement après handshake pour stopper le fader
+      ledStrip.clear();
+      Serial.println("# Fader stopped and cleared");
+    }
+    
+    Serial.print("# Clear pixels at ");
+    Serial.print(millis());
+    Serial.println("ms");
     ledStrip.clear();
   }
   // -------------- LOOPER  ------------------------
