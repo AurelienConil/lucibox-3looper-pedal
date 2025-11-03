@@ -382,16 +382,31 @@
 
         async function requestCommand(command, params = {}) {
             return new Promise((resolve, reject) => {
-                socket.emit('command_request', { command, params });
-                socket.on('command_response', (data) => {
+                // Créer un listener unique pour cette commande
+                const responseHandler = (data) => {
                     if (data.command === command) {
+                        // Retirer le listener après réception
+                        socket.off('command_response', responseHandler);
+                        
                         if (data.success) {
                             resolve(data.result);
                         } else {
                             reject(new Error(data.message || `Erreur lors de l'exécution de ${command}`));
                         }
                     }
-                });
+                };
+                
+                // Ajouter le listener avant d'envoyer la requête
+                socket.on('command_response', responseHandler);
+                
+                // Envoyer la requête
+                socket.emit('command_request', { command, params });
+                
+                // Timeout de sécurité (30 secondes)
+                setTimeout(() => {
+                    socket.off('command_response', responseHandler);
+                    reject(new Error(`Timeout: La commande ${command} n'a pas répondu dans les temps`));
+                }, 30000);
             });
         }
     </script>

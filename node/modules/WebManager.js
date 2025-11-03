@@ -4,9 +4,6 @@ const { Server } = require('socket.io');
 const { exec } = require('child_process');
 const path = require('path');
 
-// Intégration avec CLManager
-const CLManager = require('./CLManager');
-
 class WebManager {
   constructor(options = {}) {
     this.app = express();
@@ -16,7 +13,6 @@ class WebManager {
     this.messageCallback = null;
     this.autoOpenBrowser = options.autoOpenBrowser || false;
     this.htmlFileName = options.htmlFileName || 'index.html';
-    this.clManager = new CLManager(); // Initialiser CLManager
   }
 
   // Démarre le serveur web et Socket.IO
@@ -63,24 +59,19 @@ class WebManager {
         const { command, params } = data;
         console.log(`Commande reçue: ${command} avec paramètres:`, params);
 
-        try {
-          // Déléguer la commande à CLManager
-          const result = await this.clManager.executeCommand(command, params);
-
-          // Émettre une réponse de succès
-          socket.emit('command_response', {
+        // Déléguer la commande via le callback vers le main
+        if (this.messageCallback) {
+          this.messageCallback('command_request', {
             command,
-            success: true,
-            result
-          });
-        } catch (error) {
-          console.error(`Erreur lors du traitement de la commande ${command}:`, error);
-
-          // Émettre une réponse d'erreur
+            params,
+            clientId: socket.id
+          }, socket.id);
+        } else {
+          console.error('Aucun callback configuré pour les commandes');
           socket.emit('command_response', {
             command,
             success: false,
-            message: error.message
+            message: 'Service de commandes non disponible'
           });
         }
       });

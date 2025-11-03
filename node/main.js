@@ -148,9 +148,8 @@ class LuciboxBridge {
       // Exécuter la commande
       const result = await this.clManager.executeCommand(command, params);
       
-      // Envoyer le résultat via Socket.IO
-      this.webManager.sendToClient(clientId, 'command_status', {
-        type: 'command_completed',
+      // Envoyer le résultat via Socket.IO au format attendu par le client
+      this.webManager.sendToClient(clientId, 'command_response', {
         command,
         success: true,
         result,
@@ -160,12 +159,11 @@ class LuciboxBridge {
     } catch (error) {
       console.error(`Erreur lors de l'exécution de ${command}:`, error.message);
       
-      // Envoyer l'erreur au client via Socket.IO
-      this.webManager.sendToClient(clientId, 'command_status', {
-        type: 'command_error',
+      // Envoyer l'erreur au client via Socket.IO au format attendu
+      this.webManager.sendToClient(clientId, 'command_response', {
         command,
-        error: error.message,
-        message: `Erreur lors de l'exécution de ${command}`
+        success: false,
+        message: error.message
       });
     }
   }
