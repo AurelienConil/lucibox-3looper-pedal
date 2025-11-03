@@ -10,77 +10,99 @@ class ArduinoManager {
 
   // Recherche et se connecte à l'Arduino LUCIBOX
   async findAndConnect() {
-        console.log('Scanning for LUCIBOX devices...');
-    
+    console.log('Scanning for LUCIBOX devices...');
+
     try {
       const ports = await SerialPort.list();
       console.log(`Found ${ports.length} serial ports`);
-      
+
       for (const port of ports.reverse()) {
         console.log(`Testing ${port.path}...`);
-        const isLucibox = await this.testPort(port.path);
-        
+
+        const serialPort = new SerialPort({
+          path: port.path,
+          baudRate: 38400
+        });
+
+        const isLucibox = await this.testPort(serialPort);
+
         if (isLucibox) {
           console.log(`✓ LUCIBOX found on ${port.path}`);
-          this.connectToPort(port.path);
-          // clear the led strip 1 sec after connection
-          setTimeout(() => {  
-          console.log('Clearing LED strip...');
-          this.sendCommand("/lucibox/led/strip/clear 0 0");
+
+          // Set up the parser and listeners directly on the open port
+          const parser = serialPort.pipe(new ReadlineParser({ delimiter: '\n' }));
+
+          parser.on('data', (data) => {
+            console.log(`Message received: ${data.trim()}`);
+            if (this.messageCallback) {
+              this.messageCallback(data.trim());
+            }
+          });
+
+          serialPort.on('open', () => {
+            console.log(`Connected to Arduino on ${port.path}`);
+            this.isConnected = true;
+          });
+
+          serialPort.on('error', (err) => {
+            console.error('Serial port error:', err.message);
+          });
+
+          this.serialPort = serialPort; // Keep the port open
+
+          // Clear the LED strip 1 sec after connection
+          setTimeout(() => {
+            console.log('Clearing LED strip...');
+            this.sendCommand("/lucibox/led/strip/clear 0 0");
           }, 2000);
+
           return;
         }
       }
-      
+
       console.log('❌ No LUCIBOX device found');
-      
+
     } catch (error) {
       console.error('Error scanning ports:', error.message);
     }
   }
 
-  // Teste si un port est un LUCIBOX
-  async testPort(portPath) {    return new Promise((resolve) => {
-    console.log(`Promise Testing ${portPath}...`);
+  async testPort(serialPort) {
+    return new Promise((resolve) => {
+      console.log(`Testing port ${serialPort.path} for handshake...`);
       const timeout = setTimeout(() => {
         cleanup();
-        resolve(false);
-      }, 5000); // 5 secondes timeout
-      
-      let testPort;
-      
+        resolve(false); // Return false if the test fails
+      }, 5000); // 5 seconds timeout
+
       const cleanup = () => {
         clearTimeout(timeout);
-        if (testPort && testPort.isOpen) {
-          testPort.close();
+        if (serialPort && serialPort.isOpen) {
+          console.log(`Closing test port ${serialPort.path}`);
+          serialPort.close();
         }
       };
-      
-      console.log('Promise Testing try block...');
-      try {
-        testPort = new SerialPort({
-          path: portPath,
-          baudRate: 38400
-        });
 
-        
-        const parser = testPort.pipe(new ReadlineParser({ delimiter: '\n' }));
-        
+      try {
+        const parser = serialPort.pipe(new ReadlineParser({ delimiter: '\n' }));
+
         parser.on('data', (data) => {
-          console.log(`Received on ${portPath}: ${data.toString().trim()}`);
+          console.log(`Received on ${serialPort.path}: ${data.toString().trim()}`);
           const message = data.toString().trim();
           if (message.includes('LUCIBOX')) {
-            cleanup();
-            resolve(true);
+            clearTimeout(timeout); // Cancel the timeout
+            parser.removeAllListeners(); // Clean up listeners
+            console.log(`Handshake successful on ${serialPort.path}`);
+            resolve(true); // Indicate the port is valid
           }
         });
-        
-        testPort.on('error', () => {
-          console.error(`Error on ${portPath}`);
+
+        serialPort.on('error', (err) => {
+          console.error(`Error on ${serialPort.path}:`, err.message);
           cleanup();
           resolve(false);
         });
-        
+
       } catch (error) {
         console.error('Error testing port:', error.message);
         cleanup();
@@ -88,33 +110,6 @@ class ArduinoManager {
       }
     });
   }
-
-  // Se connecte à un port spécifique
-  connectToPort(portPath) {
-    //console log the portPath
-    console.log(`Connecting to Arduino on ${portPath}`);
-    this.serialPort = new SerialPort({
-      path: portPath,
-      baudRate: 38400
-    });
-    const parser = this.serialPort.pipe(new ReadlineParser({ delimiter: '\n' }));
-
-    parser.on('data', (data) => {
-      if (this.messageCallback) {
-        this.messageCallback(data.trim());
-      }
-    });
-
-    this.serialPort.on('open', () => {
-      console.log(`Connected to Arduino on ${portPath}`);
-      this.isConnected = true;
-      
-    });
-
-    this.serialPort.on('error', (err) => {
-      console.error('Serial port error:', err.message);
-    });
-}
 
   // Envoie une commande à l'Arduino
   sendCommand(message) {
