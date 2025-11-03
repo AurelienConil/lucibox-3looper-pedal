@@ -41,10 +41,11 @@ class ArduinoManager {
 
   // Teste si un port est un LUCIBOX
   async testPort(portPath) {    return new Promise((resolve) => {
+    console.log(`Promise Testing ${portPath}...`);
       const timeout = setTimeout(() => {
         cleanup();
         resolve(false);
-      }, 3500); // 3 secondes timeout
+      }, 5000); // 5 secondes timeout
       
       let testPort;
       
@@ -55,6 +56,7 @@ class ArduinoManager {
         }
       };
       
+      console.log('Promise Testing try block...');
       try {
         testPort = new SerialPort({
           path: portPath,
@@ -64,6 +66,7 @@ class ArduinoManager {
         const parser = testPort.pipe(new ReadlineParser({ delimiter: '\n' }));
         
         parser.on('data', (data) => {
+          console.log(`Received on ${portPath}: ${data.toString().trim()}`);
           const message = data.toString().trim();
           if (message === '# LUCIBOX OSC Interface Ready') {
             cleanup();
@@ -72,11 +75,13 @@ class ArduinoManager {
         });
         
         testPort.on('error', () => {
+          console.error(`Error on ${portPath}`);
           cleanup();
           resolve(false);
         });
         
       } catch (error) {
+        console.error('Error testing port:', error.message);
         cleanup();
         resolve(false);
       }
